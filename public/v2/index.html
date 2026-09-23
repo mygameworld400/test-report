@@ -147,6 +147,8 @@
   .tab .ti{font-size:20px;line-height:1}
   .tab.on{color:var(--rose-deep)}
   .back-home{display:inline-flex;align-items:center;gap:6px;color:var(--ink-soft);font-size:13px;background:none;border:none;padding:16px 0 0;cursor:pointer}
+  .beta-btn{display:block;width:100%;text-align:center;margin-top:10px;border:1.5px dashed var(--gold);color:var(--amber);font-weight:600;font-size:14px;
+    background:transparent;padding:14px;border-radius:999px}
 </style>
 
 <div class="wrap" id="app"></div>
@@ -175,8 +177,16 @@
     return order;
   }
   // ---- state ----
-  function fresh(){return {answers:{},idx:0,order:buildOrder(),inter:null};}
-  function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.order&&s.order.length===Q.length)return s;}catch(e){}return null;}
+  function sampleIds(n){
+    const a=Q.map(q=>q.id);
+    for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+    return a.slice(0,n);
+  }
+  function fresh(mode){
+    const beta=mode==='beta';
+    return {answers:{},idx:0,order:beta?sampleIds(10):buildOrder(),inter:null,beta};
+  }
+  function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.order)&&s.order.length>0)return s;}catch(e){}return null;}
   function save(s){try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
   let S=load();
   let Page='home'; // 'home' | 'profile' | 'love' | 'friend' | 'career'
@@ -307,18 +317,21 @@
         </div>
       </div>
       <button class="btn" id="start">테스트 시작하기</button>
+      <button class="beta-btn" id="startBeta">⚡ 베타테스트 시작 (10문항)</button>
       <p class="disc">심리 진단이 아닌 자기이해 콘텐츠예요 · 약 5분</p>
     </div>`));
-    document.getElementById('start').onclick=()=>{S=fresh();save(S);render();scrollTop();};
+    document.getElementById('start').onclick=()=>{S=fresh('full');save(S);render();scrollTop();};
+    document.getElementById('startBeta').onclick=()=>{S=fresh('beta');save(S);render();scrollTop();};
     document.getElementById('back-home').onclick=()=>goPage('home');
   }
   function renderQuiz(){
     const qid=S.order[S.idx],q=qById[qid],a=S.answers[qid];
-    const isLast=S.idx===Q.length-1, answered=!!(a&&a.optionId);
+    const total=S.order.length;
+    const isLast=S.idx===total-1, answered=!!(a&&a.optionId);
     app.innerHTML='';
-    const pct=Math.round((S.idx+1)/Q.length*100);
+    const pct=Math.round((S.idx+1)/total*100);
     const el=$(`<div>
-      <div class="pbar"><div class="pmeta"><span class="pcur">${S.idx+1}<small> / ${Q.length}</small></span><span class="ppct">${pct}%</span></div>
+      <div class="pbar"><div class="pmeta"><span class="pcur">${S.idx+1}<small> / ${total}</small></span><span class="ppct">${pct}%</span></div>
         <div class="track"><div class="fill" style="width:${pct}%"></div></div></div>
       <div class="fade">
         <div class="cat">${q.category}</div>
@@ -352,7 +365,7 @@
       if(!(S.answers[qid]&&S.answers[qid].optionId))return;
       if(isLast){S.done=true;save(S);renderResult();scrollTop();return;}
       S.idx++;save(S);
-      if(S.idx%10===0&&S.idx<Q.length){S.inter=S.idx;save(S);renderInter();scrollTop();}
+      if(S.idx%10===0&&S.idx<S.order.length){S.inter=S.idx;save(S);renderInter();scrollTop();}
       else{renderQuiz();scrollTop();}
     };
   }
