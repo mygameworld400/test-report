@@ -221,6 +221,23 @@
   .misread-t{font-weight:700;font-size:12.5px;margin-bottom:4px;color:var(--amber)}
   .misread-card p{margin:0;font-size:11.5px;color:var(--ink-soft);line-height:1.55}
 
+  /* 잠긴 섹션 미리보기 (블러 페이드) */
+  .lock{cursor:pointer}
+  .lock-preview{margin:-2px 0 9px;background:var(--surface);border:1px solid var(--line);border-top:none;border-radius:0 0 14px 14px;padding:14px 16px 54px;position:relative;overflow:hidden;max-height:210px}
+  .lock-preview .px,.lock-preview .sigrow{filter:blur(.2px)}
+  .lock-preview::after{content:'';position:absolute;left:0;right:0;bottom:0;height:110px;background:linear-gradient(to bottom,rgba(255,255,255,0) 0%,var(--surface) 88%)}
+  .lock-preview-cta{position:absolute;left:16px;right:16px;bottom:14px;z-index:2;border:none;border-radius:999px;padding:12px;font-weight:700;font-size:13px;color:var(--ink);background:linear-gradient(135deg,var(--gold-soft),var(--gold));cursor:pointer}
+
+  /* 궁합 보기(코드 입력) 모달 */
+  .pair-cta{width:100%;margin-top:12px;border:1.5px solid var(--gold);background:transparent;color:var(--amber);font-weight:600;font-size:14.5px;border-radius:999px;padding:15px;cursor:pointer}
+  .code-row{display:flex;gap:8px;align-items:center;margin-top:6px}
+  .code-row input{flex:1;min-width:0;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;font:inherit;font-size:14px;background:var(--ground)}
+  .code-row input[readonly]{color:var(--ink-soft)}
+  .code-copy{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);border-radius:12px;padding:0 14px;height:46px;font-size:12.5px;font-weight:600;cursor:pointer}
+  .code-label{font-size:11.5px;color:var(--muted);font-weight:700;margin:14px 0 4px}
+  .share-row{display:flex;gap:8px;margin-top:16px}
+  .share-btn{flex:1;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:12.5px;font-weight:600;cursor:pointer}
+
   /* admin */
   .admin-stat-grid{display:flex;gap:9px;margin:18px 0}
   .admin-stat{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px;text-align:center}
@@ -534,6 +551,7 @@
     if(Page==='observedIntro'){renderObservedIntro();return;}
     if(Page==='inviteIntro'){renderInviteIntro();return;}
     if(Page==='inviteDone'){renderInviteDone();return;}
+    if(Page==='pairCode'){renderPairCodeResult();return;}
     if(!S){renderIntro();return;}
     if(S.done){renderResult();return;}
     if(S.inter!=null){renderInter();return;}
@@ -928,44 +946,73 @@
         return;
       }
       const theirNc=ncFor(a);
-      const pair=computePair(myNc,theirNc);
-      const impact=computeImpact(myNc,theirNc);
-      const misreads=findMisreads(myNc,theirNc,'나',lover.display_name);
-      const guide=coupleGuide(myNc,theirNc);
       const unlocked=await isUnlocked('PAIR');
-      const FREE=2;
-      const cats=unlocked?pair.categories:pair.categories.slice(0,FREE);
-      let html=`<div class="compare-card" style="text-align:center;padding:26px 18px">
-        <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.14em;text-transform:uppercase">전체 궁합</div>
-        <div style="font-family:'Fraunces',serif;font-weight:700;font-size:42px;color:var(--rose-deep);margin:6px 0">${pair.overallScore}</div>
-      </div>
-      <div class="compare-card"><div class="compare-who">카테고리별 궁합</div>${cats.map(c=>`<div class="metric-row"><div class="metric-label">${c.category}</div><div class="metric-bar"><div style="width:${c.score}%"></div></div><div class="metric-val">${c.score}</div></div>`).join('')}</div>`;
-      if(pair.frictions.length){
-        html+=`<div class="compare-card"><div class="compare-who">충돌할 가능성이 있는 부분</div>${pair.frictions.map(f=>`<div class="misread-card"><div class="misread-t">${f.label}</div><p>${f.detail}</p></div>`).join('')}</div>`;
-      }
-      if(!unlocked){
-        html+=`<div style="margin-top:6px;padding:20px;background:var(--surface);border:1px solid var(--line);border-radius:20px;text-align:center;box-shadow:var(--shadow-sm)">
-          <div class="price2" style="margin-bottom:10px"><span class="was">${PRODUCTS.PAIR.list.toLocaleString()}원</span><span class="now">${PRODUCTS.PAIR.sale.toLocaleString()}원</span></div>
-          <button class="btn" id="pairPay">PAIR 전체 리포트 잠금 해제</button>
-          <p class="sheet-note">비대칭 영향, 해석 차이, 커플 사용설명서, 나머지 카테고리는 잠금 해제 후 볼 수 있어요.</p>
-        </div>`;
-      }else{
-        html+=`<div class="compare-card"><div class="compare-who">A가 B에게, B가 A에게 미치는 영향</div>
-          <div class="impact-cols">
-            <div class="impact-col"><h4>내가 ${lover.display_name}에게</h4>${impact.aToB.map(i=>`<div class="impact-item"><span>${i.label}</span><span class="impact-pos">${i.v>0?'+':''}${i.v}</span></div>`).join('')||'<p class="disc" style="margin:0">뚜렷한 영향 신호가 없어요.</p>'}</div>
-            <div class="impact-col"><h4>${lover.display_name}이 나에게</h4>${impact.bToA.map(i=>`<div class="impact-item"><span>${i.label}</span><span class="impact-pos">${i.v>0?'+':''}${i.v}</span></div>`).join('')||'<p class="disc" style="margin:0">뚜렷한 영향 신호가 없어요.</p>'}</div>
-          </div></div>`;
-        if(misreads.length){
-          html+=`<div class="compare-card"><div class="compare-who">같은 행동, 다른 해석</div>${misreads.map(m=>`<div class="misread-card"><div class="misread-t">${m.action}의 의미 차이</div><p>${m.hi}: ${m.action} = ${m.hiText}<br>${m.lo}: ${m.action} = ${m.loText}</p></div>`).join('')}</div>`;
-        }
-        if(guide.length){
-          html+=`<div class="compare-card"><div class="compare-who">우리 커플 사용설명서</div><div class="folded-list">${guide.map(g=>`<div class="folded-item"><div class="folded-n">${g.label}</div><div class="folded-d">${g.tip}</div></div>`).join('')}</div></div>`;
-        }
-      }
-      body.innerHTML=html;
+      body.innerHTML=buildPairHtml(myNc,theirNc,'나',lover.display_name,unlocked);
       const payBtn=document.getElementById('pairPay');
       if(payBtn)payBtn.onclick=()=>openSheet(PRODUCTS.PAIR,()=>{toast('✓ 잠금 해제됐어요');renderPair();});
     })();
+  }
+  /** PAIR/코드궁합 공용 렌더 — ncA/ncB: { [dimension]: number }, labelA/labelB: 표시용 이름 */
+  function buildPairHtml(ncA,ncB,labelA,labelB,unlocked){
+    const pair=computePair(ncA,ncB);
+    const impact=computeImpact(ncA,ncB);
+    const misreads=findMisreads(ncA,ncB,labelA,labelB);
+    const guide=coupleGuide(ncA,ncB);
+    const FREE=2;
+    const cats=unlocked?pair.categories:pair.categories.slice(0,FREE);
+    let html=`<div class="compare-card" style="text-align:center;padding:26px 18px">
+      <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.14em;text-transform:uppercase">전체 궁합</div>
+      <div style="font-family:'Fraunces',serif;font-weight:700;font-size:42px;color:var(--rose-deep);margin:6px 0">${pair.overallScore}</div>
+    </div>
+    <div class="compare-card"><div class="compare-who">카테고리별 궁합</div>${cats.map(c=>`<div class="metric-row"><div class="metric-label">${c.category}</div><div class="metric-bar"><div style="width:${c.score}%"></div></div><div class="metric-val">${c.score}</div></div>`).join('')}</div>`;
+    if(pair.frictions.length){
+      html+=`<div class="compare-card"><div class="compare-who">충돌할 가능성이 있는 부분</div>${pair.frictions.map(f=>`<div class="misread-card"><div class="misread-t">${f.label}</div><p>${f.detail}</p></div>`).join('')}</div>`;
+    }
+    if(!unlocked){
+      html+=`<div style="margin-top:6px;padding:20px;background:var(--surface);border:1px solid var(--line);border-radius:20px;text-align:center;box-shadow:var(--shadow-sm)">
+        <div class="price2" style="margin-bottom:10px"><span class="was">${PRODUCTS.PAIR.list.toLocaleString()}원</span><span class="now">${PRODUCTS.PAIR.sale.toLocaleString()}원</span></div>
+        <button class="btn" id="pairPay">PAIR 전체 리포트 잠금 해제</button>
+        <p class="sheet-note">비대칭 영향, 해석 차이, 커플 사용설명서, 나머지 카테고리는 잠금 해제 후 볼 수 있어요.</p>
+      </div>`;
+    }else{
+      html+=`<div class="compare-card"><div class="compare-who">A가 B에게, B가 A에게 미치는 영향</div>
+        <div class="impact-cols">
+          <div class="impact-col"><h4>${labelA}이(가) ${labelB}에게</h4>${impact.aToB.map(i=>`<div class="impact-item"><span>${i.label}</span><span class="impact-pos">${i.v>0?'+':''}${i.v}</span></div>`).join('')||'<p class="disc" style="margin:0">뚜렷한 영향 신호가 없어요.</p>'}</div>
+          <div class="impact-col"><h4>${labelB}이(가) ${labelA}에게</h4>${impact.bToA.map(i=>`<div class="impact-item"><span>${i.label}</span><span class="impact-pos">${i.v>0?'+':''}${i.v}</span></div>`).join('')||'<p class="disc" style="margin:0">뚜렷한 영향 신호가 없어요.</p>'}</div>
+        </div></div>`;
+      if(misreads.length){
+        html+=`<div class="compare-card"><div class="compare-who">같은 행동, 다른 해석</div>${misreads.map(m=>`<div class="misread-card"><div class="misread-t">${m.action}의 의미 차이</div><p>${m.hi}: ${m.action} = ${m.hiText}<br>${m.lo}: ${m.action} = ${m.loText}</p></div>`).join('')}</div>`;
+      }
+      if(guide.length){
+        html+=`<div class="compare-card"><div class="compare-who">우리 커플 사용설명서</div><div class="folded-list">${guide.map(g=>`<div class="folded-item"><div class="folded-n">${g.label}</div><div class="folded-d">${g.tip}</div></div>`).join('')}</div></div>`;
+      }
+    }
+    return html;
+  }
+  /** 코드 두 개로 궁합 계산 — 못 찾으면 null */
+  async function loadPairByCodes(myCode,otherCode){
+    const[a,b]=await Promise.all([loadAssessment(myCode),loadAssessment(otherCode)]);
+    if(!a||!b)return null;
+    return{ncA:ncFor(a),ncB:ncFor(b)};
+  }
+  let codePairResult=null;
+  function renderPairCodeResult(){
+    if(!codePairResult){app.innerHTML='';app.append($(`<div class="intro fade" style="justify-content:center"><p class="sub">궁합 결과를 찾을 수 없어요.</p></div>`));return;}
+    app.innerHTML='';
+    const el=$(`<div class="fade" style="padding-top:44px;padding-bottom:96px">
+      <button class="back-home" id="bh">← 홈</button>
+      <div class="kick" style="margin-top:14px">CODE PAIR</div>
+      <h2 class="serif" style="font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:24px;margin:8px 0 16px">코드로 본 우리 궁합</h2>
+      <div id="cpBody"><p class="sub" style="margin:0">불러오는 중…</p></div>
+    </div>`);
+    app.append(el);
+    document.getElementById('bh').onclick=()=>{Page='home';render();scrollTop();};
+    isUnlocked('PAIR').then(unlocked=>{
+      const body=document.getElementById('cpBody');if(!body)return;
+      body.innerHTML=buildPairHtml(codePairResult.ncA,codePairResult.ncB,'나','상대',unlocked);
+      const payBtn=document.getElementById('pairPay');
+      if(payBtn)payBtn.onclick=()=>openSheet(PRODUCTS.PAIR,()=>{toast('✓ 잠금 해제됐어요');renderPairCodeResult();});
+    });
   }
 
   // ---- 관리자 ----
@@ -1097,7 +1144,9 @@
           catch(e){toast('저장에 실패했어요. 다시 시도해주세요.');return;}
           S=null;localStorage.removeItem(KEY);Page='inviteDone';render();scrollTop();return;
         }
-        S.done=true;save(S);renderResult();scrollTop();return;
+        S.done=true;save(S);renderResult();scrollTop();
+        if(!S.code){saveAssessment(S.answers).then(code=>{S.code=code;save(S);}).catch(()=>{});}
+        return;
       }
       S.idx++;save(S);
       if(S.idx%10===0&&S.idx<S.order.length){S.inter=S.idx;save(S);renderInter();scrollTop();}
@@ -1128,6 +1177,7 @@
     const lk=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>`;
     const sigHtml=sig.map(d=>`<div class="sigrow"><div class="signum" style="color:${d.dir==='low'?'#7C8BA1':'#A44863'}">${d.value}<sup>/100</sup></div><div><div><span class="siglab">${d.label}</span>${d.dir==='high'?'<span class="sigbadge bd-high">매우 높음</span>':d.dir==='low'?'<span class="sigbadge bd-low">매우 낮음</span>':''}</div><p class="sigtext">${d.text}</p></div></div>`).join('');
     const high=sig.find(d=>d.dir==='high'),low=sig.find(d=>d.dir==='low');
+    const items=fullReportItems(nc,nl,ch,ins,giveRows,recvRows);
     app.innerHTML='';
     app.append($(`<div class="fade" style="overflow:hidden">
       <section class="cover" style="border:none">
@@ -1137,6 +1187,7 @@
         <div class="ako">${meta.nameKo}</div>
         <div class="atag">“${meta.tagline}”</div>
         <div class="chips"><span class="chip">유사도 <span class="fr">${Math.round(ch.primary.sim)}%</span></span><span class="chip">보조 유형 <b>${sec.nameKo}</b></span><span class="chip">${ch.blend}</span></div>
+        <p class="disc" style="margin-top:10px">유사도 = 당신의 18개 수치가 &apos;${meta.nameKo}&apos; 유형의 기준 패턴과 얼마나 가까운지예요. 100%면 완전히 같고, 다른 11개 유형과도 각각 유사도를 비교해서 가장 가까운 걸 주캐릭터로 골라요.</p>
       </section>
       <section class="rs"><p class="pull"><span class="qq">“</span>${lead}</p>${body?`<p class="ess">${body}</p>`:''}</section>
       <section class="rs"><div class="sh"><span class="no">01</span><h3>당신을 가장 잘 보여주는 3가지</h3></div><p class="signote">높은 수치만이 아니라, 가장 <b>당신다운 대비</b>를 골랐어요.</p>${sigHtml}${high&&low?`<div class="contrast">${high.label} <b>${high.value}</b> ↔ ${low.label} <b>${low.value}</b>. 이 간격이 당신의 핵심이에요.</div>`:''}</section>
@@ -1148,8 +1199,9 @@
       </section>
       <section class="rs"><div class="sh"><span class="no">04</span><h3>전체 리포트</h3></div>
         <div id="fullSection">
-          ${locks.map(t=>`<div class="lock"><span class="ic">${lockIco}</span><span class="lt">${t}</span><span class="lk">${lk}</span></div>`).join('')}
+          ${locks.map((t,i)=>`<div class="lock" data-lockidx="${i}"><span class="ic">${lockIco}</span><span class="lt">${t}</span><span class="lk">${lk}</span></div><div class="lock-preview" id="lp-${i}" hidden></div>`).join('')}
           <div class="unlock"><div class="ue">Full Report</div><h3>${meta.nameKo}의 연애, 끝까지 읽어보기</h3><p>10개의 심층 섹션과 18개 수치 전체,<br>나와 맞는·부딪히는 아키타입까지.</p><div class="price"><span class="was">${PRODUCTS.ME_FULL.list.toLocaleString()}원</span><span class="now">${PRODUCTS.ME_FULL.sale.toLocaleString()}</span><span class="cu">원</span></div><button class="ubtn" id="pay">전체 리포트 열기</button><p class="disc" style="color:#B9A0A9;margin-top:12px">1회 결제 · 평생 다시보기</p></div>
+          <button class="pair-cta" id="pairCodeBtn">💞 궁합 보기</button>
         </div>
         <div class="again"><button id="home">처음으로</button><button id="retry">다시 테스트</button></div>
         <p class="disc">이 리포트는 심리 진단이 아닌 자기이해 콘텐츠예요.<br>같은 답변은 항상 같은 결과로 계산됩니다 · ME v1.0</p>
@@ -1157,18 +1209,83 @@
     </div>`));
     document.getElementById('home').onclick=()=>{S=null;localStorage.removeItem(KEY);Page='home';render();scrollTop();};
     document.getElementById('retry').onclick=()=>{S=fresh();save(S);render();scrollTop();};
+    document.getElementById('pairCodeBtn').onclick=()=>openPairCodeModal();
+    let unlockedNow=false;
+    document.querySelectorAll('[data-lockidx]').forEach(row=>{
+      row.onclick=()=>{
+        if(unlockedNow)return;
+        const i=+row.dataset.lockidx;
+        const panel=document.getElementById('lp-'+i);
+        const opening=panel.hidden;
+        document.querySelectorAll('.lock-preview').forEach(p=>p.hidden=true);
+        if(!opening)return;
+        panel.innerHTML=`${items[i].html}<button class="lock-preview-cta" id="lpCta-${i}">이어서 보려면 전체 리포트 열기 · ${PRODUCTS.ME_FULL.sale.toLocaleString()}원</button>`;
+        panel.hidden=false;
+        document.getElementById('lpCta-'+i).onclick=(e)=>{e.stopPropagation();openSheet(PRODUCTS.ME_FULL,()=>{toast('✓ 잠금 해제됐어요');renderResult();});};
+      };
+    });
     isUnlocked('ME_FULL').then(unlocked=>{
       if(!unlocked){
         const payBtn=document.getElementById('pay');
         if(payBtn)payBtn.onclick=()=>openSheet(PRODUCTS.ME_FULL,()=>{toast('✓ 잠금 해제됐어요');renderResult();});
         return;
       }
+      unlockedNow=true;
       const fs=document.getElementById('fullSection');if(!fs)return;
-      fs.innerHTML=renderFullReport(nc,nl,ch,ins,giveRows,recvRows);
+      const unlockBox=fs.querySelector('.unlock');if(unlockBox)unlockBox.remove();
+      document.querySelectorAll('.lock,.lock-preview').forEach(e=>e.remove());
+      fs.insertAdjacentHTML('afterbegin',renderFullReport(nc,nl,ch,ins,giveRows,recvRows));
     });
   }
+  // ---- 궁합 보기(코드 입력) 팝업 ----
+  let pendingPairCode=null;
+  function openPairCodeModal(){
+    closeSheet();
+    const myCode=(S&&S.code)||'';
+    const ov=$(`<div class="sheet-overlay"></div>`);
+    const sh=$(`<div class="sheet2">
+      <h3>💞 궁합 보기</h3>
+      <p class="sub2">각자 &apos;나의 연애 성향&apos; 결과 코드를 넣으면 바로 궁합을 볼 수 있어요.</p>
+      <div class="code-label">내 코드</div>
+      <div class="code-row"><input id="myCodeInput" readonly value="${myCode||'결과를 먼저 완료해주세요'}"><button class="code-copy" id="copyMyCode">복사</button></div>
+      <div class="code-label">상대방 코드</div>
+      <div class="code-row"><input id="otherCodeInput" placeholder="상대방 코드를 입력해주세요" value="${pendingPairCode||''}"></div>
+      <button class="btn" id="pairCodeGo" style="margin-top:16px">궁합 보기</button>
+      <p class="disc" id="pairCodeErr" style="color:#B5495F"></p>
+      <div class="share-row">
+        <button class="share-btn" id="shareLink">🔗 링크 복사</button>
+        <button class="share-btn" id="shareNative">📤 공유하기</button>
+      </div>
+      <button class="quit-link" id="pairCodeClose" style="margin:12px auto 0;text-align:center">닫기</button>
+    </div>`);
+    document.body.append(ov,sh);
+    ov.onclick=closeSheet;
+    document.getElementById('pairCodeClose').onclick=closeSheet;
+    document.getElementById('copyMyCode').onclick=()=>{if(!myCode)return;navigator.clipboard.writeText(myCode);toast('코드를 복사했어요.');};
+    const shareLink=`${location.origin}${location.pathname}#pair=${myCode}`;
+    document.getElementById('shareLink').onclick=()=>{if(!myCode)return toast('결과를 먼저 완료해주세요.');navigator.clipboard.writeText(shareLink);toast('링크를 복사했어요.');};
+    document.getElementById('shareNative').onclick=()=>{
+      if(!myCode)return toast('결과를 먼저 완료해주세요.');
+      if(navigator.share){navigator.share({title:'ME 연애 리포트 궁합',text:'내 연애 성향 결과로 궁합 확인해봐!',url:shareLink}).catch(()=>{});}
+      else{navigator.clipboard.writeText(shareLink);toast('링크를 복사했어요. 카카오톡 등에 붙여넣어 보내주세요.');}
+    };
+    document.getElementById('pairCodeGo').onclick=async()=>{
+      const other=document.getElementById('otherCodeInput').value.trim();
+      const err=document.getElementById('pairCodeErr');err.textContent='';
+      if(!myCode){err.textContent='내 결과를 먼저 완료해주세요.';return;}
+      if(!other){err.textContent='상대방 코드를 입력해주세요.';return;}
+      const btn=document.getElementById('pairCodeGo');btn.textContent='불러오는 중…';btn.disabled=true;
+      const result=await loadPairByCodes(myCode,other).catch(()=>null);
+      if(!result){err.textContent='결과 코드를 찾을 수 없어요.';btn.textContent='궁합 보기';btn.disabled=false;return;}
+      closeSheet();
+      codePairResult=result;
+      Page='pairCode';render();scrollTop();
+    };
+  }
   const LOVE_BLURB={giveWords:'말로 마음을 표현할 때 상대가 가장 크게 느껴요.',giveTime:'함께 보내는 시간 자체가 당신의 사랑 표현이에요.',giveTouch:'스킨십으로 애정을 표현하는 게 자연스러워요.',giveGift:'선물과 기념일로 마음을 표현하는 편이에요.',giveHelp:'필요한 걸 직접 해결해주는 걸로 사랑을 표현해요.',receiveWords:'말로 확인받을 때 가장 크게 사랑받는다고 느껴요.',receiveTime:'함께하는 시간을 내줄 때 사랑을 느껴요.',receiveTouch:'스킨십을 받을 때 사랑을 느끼는 편이에요.',receiveGift:'선물을 받을 때 마음이 크게 느껴져요.',receiveHelp:'실질적으로 도와줄 때 사랑받는다고 느껴요.'};
-  function renderFullReport(nc,nl,ch,ins,giveRows,recvRows){
+  /** locks 배열과 같은 순서로 10개 {title, html} 반환. 미리보기(블러)와 잠금해제 화면이
+   * 같은 실제 데이터를 공유한다 — 미리보기용으로 따로 지어낸 문구가 아니다. */
+  function fullReportItems(nc,nl,ch,ins,giveRows,recvRows){
     const topGive=[...giveRows].sort((a,b)=>b.v-a.v)[0],topRecv=[...recvRows].sort((a,b)=>b.v-a.v)[0];
     const giveKey=Object.keys(LLAB).find(k=>k.startsWith('give')&&LLAB[k].includes(topGive.l.split('·')[0]))||'giveWords';
     const recvKey=Object.keys(LLAB).find(k=>k.startsWith('receive')&&LLAB[k].includes(topRecv.l.split('·')[0]))||'receiveWords';
@@ -1178,19 +1295,24 @@
     const thirdType=types.top3[2];
     const worstType=types.worst;
     const restIns=ins.slice(1);
-    return `
-      <div class="pattern" style="margin-top:0"><div class="pt">당신이 사랑하는 방식</div><p class="px" style="font-size:14.5px">가장 자주 쓰는 표현은 <b>${topGive.l}</b>이에요. ${LOVE_BLURB[giveKey]}</p></div>
-      <div class="pattern"><div class="pt">당신이 사랑받는 방식</div><p class="px" style="font-size:14.5px">가장 크게 느끼는 방식은 <b>${topRecv.l}</b>이에요. ${LOVE_BLURB[recvKey]}</p></div>
-      <div class="pattern"><div class="pt">싸웠을 때의 진짜 모습</div><p class="px" style="font-size:14.5px">${BANDS.conflictDirect[band(nc.conflictDirect)]} ${BANDS.cooldown[band(nc.cooldown)]} ${BANDS.emotionExpression[band(nc.emotionExpression)]}</p></div>
-      <div class="pattern"><div class="pt">신뢰가 깨졌을 때</div><p class="px" style="font-size:14.5px">${BANDS.trustOpen[band(nc.trustOpen)]} ${BANDS.boundary[band(nc.boundary)]} ${BANDS.repair[band(nc.repair)]}</p></div>
-      <div class="pattern"><div class="pt">관계에서 가장 취약한 부분</div><p class="px" style="font-size:14.5px">${lowest.map(d=>`<b>${d.label}</b> — ${d.text}`).join('<br>')}</p></div>
-      <div class="pattern"><div class="pt">관계에서의 강점</div><p class="px" style="font-size:14.5px">${META[ch.primary.k].strengths.map(s=>`· ${s}`).join('<br>')}</p></div>
-      <div class="pattern"><div class="pt">당신과 잘 맞는 캐릭터 — ${META[thirdType.k].nameKo}</div><p class="px" style="font-size:14.5px">“${META[thirdType.k].tagline}” ${META[thirdType.k].essence}</p></div>
-      <div class="pattern"><div class="pt">충돌하기 쉬운 캐릭터 — ${META[worstType.k].nameKo}</div><p class="px" style="font-size:14.5px">“${META[worstType.k].tagline}” 서로 기준이 크게 달라 부딪히는 지점이 많을 수 있어요.</p></div>
-      <div class="sh" style="margin-top:20px"><h3>전체 18개 연애 수치</h3></div>
-      ${all.map(d=>`<div class="sigrow" style="padding:12px 0"><div class="signum" style="font-size:26px">${d.value}<sup>/100</sup></div><div><div class="siglab">${d.label}</div><p class="sigtext">${d.text}</p></div></div>`).join('')}
-      <div class="pattern" style="margin-top:16px"><div class="pt">나를 연애할 때 사용설명서</div><p class="px" style="font-size:14.5px">${[ins[0],...restIns].filter(Boolean).map(r=>`· <b>${r.t}</b> — ${r.x}`).join('<br>')}</p></div>
-    `;
+    const p=(html)=>`<p class="px" style="font-size:14.5px">${html}</p>`;
+    return [
+      {title:'당신이 사랑하는 방식',html:p(`가장 자주 쓰는 표현은 <b>${topGive.l}</b>이에요. ${LOVE_BLURB[giveKey]}`)},
+      {title:'당신이 사랑받는 방식',html:p(`가장 크게 느끼는 방식은 <b>${topRecv.l}</b>이에요. ${LOVE_BLURB[recvKey]}`)},
+      {title:'싸웠을 때의 진짜 모습',html:p(`${BANDS.conflictDirect[band(nc.conflictDirect)]} ${BANDS.cooldown[band(nc.cooldown)]} ${BANDS.emotionExpression[band(nc.emotionExpression)]}`)},
+      {title:'신뢰가 깨졌을 때',html:p(`${BANDS.trustOpen[band(nc.trustOpen)]} ${BANDS.boundary[band(nc.boundary)]} ${BANDS.repair[band(nc.repair)]}`)},
+      {title:'관계에서 가장 취약한 부분',html:p(lowest.map(d=>`<b>${d.label}</b> — ${d.text}`).join('<br>'))},
+      {title:'관계에서의 강점',html:p(META[ch.primary.k].strengths.map(s=>`· ${s}`).join('<br>'))},
+      {title:'당신과 잘 맞는 캐릭터',html:p(`<b>${META[thirdType.k].nameKo}</b> — “${META[thirdType.k].tagline}” ${META[thirdType.k].essence}`)},
+      {title:'충돌하기 쉬운 캐릭터',html:p(`<b>${META[worstType.k].nameKo}</b> — “${META[worstType.k].tagline}” 서로 기준이 크게 달라 부딪히는 지점이 많을 수 있어요.`)},
+      {title:'전체 18개 연애 수치',html:all.map(d=>`<div class="sigrow" style="padding:10px 0"><div class="signum" style="font-size:24px">${d.value}<sup>/100</sup></div><div><div class="siglab">${d.label}</div><p class="sigtext">${d.text}</p></div></div>`).join('')},
+      {title:'나를 연애할 때 사용설명서',html:p([ins[0],...restIns].filter(Boolean).map(r=>`· <b>${r.t}</b> — ${r.x}`).join('<br>'))},
+    ];
+  }
+  function renderFullReport(nc,nl,ch,ins,giveRows,recvRows){
+    return fullReportItems(nc,nl,ch,ins,giveRows,recvRows)
+      .map((it,i)=>i===8?`<div class="sh" style="margin-top:20px"><h3>${it.title}</h3></div>${it.html}`:`<div class="pattern"${i===0?' style="margin-top:0"':''}><div class="pt">${it.title}</div>${it.html}</div>`)
+      .join('');
   }
   let tt;function toast(m){clearTimeout(tt);let e=document.querySelector('.toast');if(!e){e=$(`<div class="toast"></div>`);document.body.append(e);}e.textContent=m;tt=setTimeout(()=>e.remove(),2200);}
 
@@ -1202,6 +1324,9 @@
       history.replaceState(null,'',location.pathname);
       inviteInfo=await resolveInvite(inviteToken).catch(()=>null);
       Page='inviteIntro';
+    }else if(hash.startsWith('#pair=')){
+      pendingPairCode=hash.slice('#pair='.length);
+      history.replaceState(null,'',location.pathname);
     }else if(hash==='#admin'){
       history.replaceState(null,'',location.pathname);
       Page='admin';
