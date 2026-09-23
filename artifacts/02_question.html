@@ -1,0 +1,97 @@
+<title>ME 질문 화면</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Nanum+Myeongjo:wght@400;700;800&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme:light;
+    --ground:#FBF6F1;--surface:#FFFFFF;--ink:#3A2530;--ink-soft:#6E5A61;
+    --muted:#9C8A8F;--rose:#C2607A;--rose-deep:#A44863;--blush:#F6E4E8;
+    --gold:#C4A05E;--line:#EADFD7;--shadow:0 14px 32px rgba(90,45,60,.09);
+  }
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);
+    font-family:'IBM Plex Sans KR',system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+  .frame{max-width:430px;margin:0 auto;min-height:100%;padding:0 22px 108px;position:relative;}
+  .serif{font-family:'Nanum Myeongjo',Georgia,serif;}
+
+  /* progress */
+  .pbar{position:sticky;top:env(safe-area-inset-top,0px);background:var(--ground);
+    padding:20px 0 14px;z-index:5;}
+  .pmeta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px;}
+  .pmeta .cur{font-family:'Fraunces',serif;font-weight:600;font-size:15px;color:var(--rose-deep);
+    letter-spacing:.02em;font-variant-numeric:tabular-nums;}
+  .pmeta .cur small{color:var(--muted);font-weight:400;}
+  .pmeta .pct{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+  .track{height:2px;background:var(--line);border-radius:2px;overflow:hidden;}
+  .fill{height:100%;width:26.6%;background:linear-gradient(90deg,var(--gold),var(--rose));}
+
+  .eyebrow{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--rose-deep);
+    font-weight:600;margin:26px 0 12px;}
+  h2{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:25px;line-height:1.42;
+    margin:0 0 26px;letter-spacing:-.01em;text-wrap:balance;}
+
+  .opts{display:flex;flex-direction:column;gap:12px;}
+  .opt{display:flex;gap:14px;align-items:flex-start;text-align:left;cursor:pointer;
+    background:var(--surface);border:1px solid var(--line);border-radius:18px;
+    padding:17px 17px;transition:all .15s ease;box-shadow:0 2px 10px rgba(90,45,60,.04);}
+  .opt .k{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+    font-family:'Fraunces',serif;font-weight:600;font-size:13px;background:var(--blush);color:var(--rose-deep);margin-top:1px;}
+  .opt .t{font-size:14.5px;line-height:1.62;color:var(--ink);}
+  .opt.sel{border-color:var(--rose);background:linear-gradient(180deg,#fff,var(--blush));
+    box-shadow:var(--shadow);}
+  .opt.sel .k{background:var(--rose);color:#fff;}
+
+  .reason{margin-top:16px;display:flex;align-items:center;gap:8px;color:var(--muted);
+    font-size:13px;padding-left:2px;}
+  .reason .ic{width:16px;height:16px;opacity:.8}
+
+  .other{margin-top:14px;width:100%;background:transparent;cursor:pointer;
+    border:1px dashed #E0B9C4;color:var(--rose-deep);font-family:inherit;font-weight:500;
+    font-size:13.5px;border-radius:16px;padding:14px;letter-spacing:.01em;}
+
+  /* nav */
+  .nav{position:fixed;left:0;right:0;bottom:0;background:rgba(251,246,241,.94);
+    backdrop-filter:blur(8px);border-top:1px solid var(--line);
+    padding:12px 22px calc(12px + env(safe-area-inset-bottom,0px));}
+  .navin{max-width:430px;margin:0 auto;display:flex;gap:11px;}
+  .prev{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);
+    border-radius:999px;padding:14px 22px;font-family:inherit;font-weight:500;font-size:14px;cursor:pointer;}
+  .next{flex:1;border:none;color:#fff;border-radius:999px;padding:14px;font-family:inherit;
+    font-weight:600;font-size:15px;cursor:pointer;
+    background:linear-gradient(135deg,var(--rose),var(--rose-deep));box-shadow:0 10px 22px rgba(164,72,99,.28);}
+</style>
+
+<div class="frame">
+  <div class="pbar">
+    <div class="pmeta">
+      <span class="cur">12<small> / 45</small></span>
+      <span class="pct">27%</span>
+    </div>
+    <div class="track"><div class="fill"></div></div>
+  </div>
+
+  <div class="eyebrow">갈등</div>
+  <h2>연인이 직장에서 크게 화난 채 전화를 걸어왔다. 가장 먼저 하는 반응은?</h2>
+
+  <div class="opts">
+    <div class="opt"><span class="k">A</span><span class="t">“진짜 힘들었겠다” 하며 충분히 들어준다.</span></div>
+    <div class="opt sel"><span class="k">B</span><span class="t">누가 뭘 잘못했는지 상황부터 정리해본다.</span></div>
+    <div class="opt"><span class="k">C</span><span class="t">당장 할 수 있는 해결방법을 같이 찾는다.</span></div>
+    <div class="opt"><span class="k">D</span><span class="t">원하는 게 위로인지 해결책인지 먼저 묻는다.</span></div>
+  </div>
+
+  <div class="reason">
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.4 8.4 0 0 1-11.9 7.6L3 21l1.9-6.1A8.4 8.4 0 1 1 21 11.5z"/></svg>
+    이 선택을 한 이유 추가하기
+  </div>
+
+  <button class="other">✎&nbsp;&nbsp;나는 조금 달라요 — 직접 답하기</button>
+</div>
+
+<div class="nav">
+  <div class="navin">
+    <button class="prev">이전</button>
+    <button class="next">다음</button>
+  </div>
+</div>

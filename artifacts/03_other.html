@@ -1,0 +1,102 @@
+<title>ME 직접 답하기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Nanum+Myeongjo:wght@400;700;800&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme:light;
+    --ground:#FBF6F1;--surface:#FFFFFF;--ink:#3A2530;--ink-soft:#6E5A61;
+    --muted:#9C8A8F;--rose:#C2607A;--rose-deep:#A44863;--blush:#F6E4E8;
+    --gold:#C4A05E;--line:#EADFD7;--shadow:0 14px 32px rgba(90,45,60,.10);
+  }
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);
+    font-family:'IBM Plex Sans KR',system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+  .frame{max-width:430px;margin:0 auto;min-height:100%;padding:0 22px 118px;}
+  .serif{font-family:'Nanum Myeongjo',Georgia,serif;}
+
+  .pbar{position:sticky;top:env(safe-area-inset-top,0px);background:var(--ground);padding:20px 0 14px;z-index:5;}
+  .pmeta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px;}
+  .pmeta .cur{font-family:'Fraunces',serif;font-weight:600;font-size:15px;color:var(--rose-deep);font-variant-numeric:tabular-nums;}
+  .pmeta .cur small{color:var(--muted);font-weight:400;}
+  .pmeta .pct{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+  .track{height:2px;background:var(--line);border-radius:2px;overflow:hidden;}
+  .fill{height:100%;width:27%;background:linear-gradient(90deg,var(--gold),var(--rose));}
+
+  .eyebrow{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--rose-deep);font-weight:600;margin:24px 0 12px;}
+  h2{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:24px;line-height:1.42;margin:0 0 22px;text-wrap:balance;}
+
+  /* collapsed options preview */
+  .opts-mini{display:flex;flex-direction:column;gap:8px;opacity:.6;margin-bottom:6px;}
+  .om{display:flex;gap:11px;align-items:center;background:var(--surface);border:1px solid var(--line);
+    border-radius:13px;padding:11px 13px;font-size:12.5px;color:var(--ink-soft);}
+  .om .k{font-family:'Fraunces',serif;font-weight:600;color:var(--muted);font-size:12px;}
+
+  .panel{margin-top:16px;background:var(--surface);border:1px solid #E6CBD3;border-radius:20px;
+    padding:20px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .panel::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+    background:linear-gradient(180deg,var(--gold),var(--rose));}
+  .plabel{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--rose-deep);font-size:14px;}
+  .phelp{margin:9px 0 14px;font-size:12.5px;color:var(--muted);line-height:1.6;}
+  textarea{width:100%;min-height:118px;resize:none;border:1px solid var(--line);border-radius:14px;
+    padding:14px;font-family:inherit;font-size:14.5px;line-height:1.7;color:var(--ink);background:#FEFCFB;}
+  textarea:focus{outline:none;border-color:var(--rose);box-shadow:0 0 0 3px rgba(194,96,122,.14);}
+  .count{text-align:right;font-size:11px;color:var(--muted);margin-top:6px;}
+
+  .analyze{margin-top:8px;width:100%;border:none;color:#fff;border-radius:14px;padding:15px;
+    font-family:inherit;font-weight:600;font-size:15px;cursor:pointer;
+    background:linear-gradient(135deg,var(--rose),var(--rose-deep));box-shadow:0 10px 22px rgba(164,72,99,.26);}
+
+  .assure{margin-top:16px;display:flex;gap:10px;align-items:flex-start;background:#F6EFE7;
+    border:1px solid #ECDCC6;border-radius:14px;padding:13px 14px;}
+  .assure svg{flex:none;width:17px;height:17px;color:var(--gold);margin-top:1px}
+  .assure p{margin:0;font-size:12px;color:var(--ink-soft);line-height:1.65;}
+  .assure b{color:var(--ink);font-weight:600;}
+
+  .nav{position:fixed;left:0;right:0;bottom:0;background:rgba(251,246,241,.94);backdrop-filter:blur(8px);
+    border-top:1px solid var(--line);padding:12px 22px calc(12px + env(safe-area-inset-bottom,0px));}
+  .navin{max-width:430px;margin:0 auto;display:flex;gap:11px;}
+  .prev{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);
+    border-radius:999px;padding:14px 22px;font-family:inherit;font-weight:500;font-size:14px;}
+  .next{flex:1;border:none;color:var(--muted);border-radius:999px;padding:14px;font-family:inherit;
+    font-weight:600;font-size:15px;background:var(--ground-2,#EFE3DC);border:1px solid var(--line);}
+</style>
+
+<div class="frame">
+  <div class="pbar">
+    <div class="pmeta"><span class="cur">12<small> / 45</small></span><span class="pct">27%</span></div>
+    <div class="track"><div class="fill"></div></div>
+  </div>
+
+  <div class="eyebrow">갈등</div>
+  <h2>연인이 직장에서 크게 화난 채 전화를 걸어왔다. 가장 먼저 하는 반응은?</h2>
+
+  <div class="opts-mini">
+    <div class="om"><span class="k">A</span> 충분히 들어준다</div>
+    <div class="om"><span class="k">B</span> 상황부터 정리해본다</div>
+    <div class="om"><span class="k">C</span> 해결방법을 같이 찾는다</div>
+    <div class="om"><span class="k">D</span> 위로인지 해결인지 먼저 묻는다</div>
+  </div>
+
+  <div class="panel">
+    <div class="plabel">✎ 나는 조금 달라요</div>
+    <p class="phelp">선택지에 딱 맞는 답이 없다면, 내 방식대로 적어주세요.
+      적어주신 답을 A~D와 비교해 <b style="color:var(--ink-soft)">점수에 그대로 반영</b>합니다.</p>
+    <textarea>일단 통화로는 “많이 놀랐겠다” 정도만 하고, 지금 당장 판단하기보다 만나서 얼굴 보고 상황을 차분히 들은 뒤에 필요하면 같이 방법을 찾는 편이에요.</textarea>
+    <div class="count">92자</div>
+    <button class="analyze">이 답변으로 분석하기</button>
+
+    <div class="assure">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
+      <p><b>AI는 점수를 지어내지 않아요.</b> 내 답이 어떤 선택지와 가까운지만 판단하고,
+        최종 수치는 정해진 공식으로 계산됩니다.</p>
+    </div>
+  </div>
+</div>
+
+<div class="nav">
+  <div class="navin">
+    <button class="prev">이전</button>
+    <button class="next">다음</button>
+  </div>
+</div>
