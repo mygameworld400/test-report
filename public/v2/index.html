@@ -3,6 +3,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Nanum+Myeongjo:wght@400;700;800&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <style>
   :root{color-scheme:light;
     --ground:#FBF6F1;--surface:#FFF;--ink:#3A2530;--ink-soft:#6E5A61;--muted:#9C8A8F;
@@ -150,11 +151,86 @@
   .beta-btn{display:block;width:100%;text-align:center;margin-top:10px;border:1.5px dashed var(--gold);color:var(--amber);font-weight:600;font-size:14px;
     background:transparent;padding:14px;border-radius:999px}
   .quit-link{display:block;margin:8px 0 0 auto;background:none;border:none;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer;padding:4px}
+
+  /* dashboard product list */
+  .sec-label{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin:28px 0 10px}
+  .prod-list{display:flex;flex-direction:column;gap:9px}
+  .prod-row{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 15px;box-shadow:var(--shadow-sm)}
+  .pr-ic{flex:none;width:38px;height:38px;border-radius:12px;background:var(--blush);display:grid;place-items:center;font-size:17px}
+  .pr-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .pr-name{font-weight:600;font-size:14px;color:var(--ink)}
+  .pr-desc{font-size:11.5px;color:var(--muted)}
+  .pr-state{flex:none;font-size:11.5px;font-weight:700;color:var(--rose-deep);background:var(--blush);border-radius:999px;padding:5px 10px}
+
+  /* people / person cards */
+  .people-list{display:flex;flex-direction:column;gap:9px;margin-top:16px}
+  .person-card{display:flex;align-items:center;gap:12px;padding:13px 15px;background:var(--surface);border:1px solid var(--line);border-radius:16px}
+  .avatar{width:38px;height:38px;border-radius:50%;background:var(--blush);color:var(--rose-deep);display:grid;place-items:center;font-weight:700;font-size:14px;flex:none}
+  .pc-body{flex:1}
+  .pc-name{font-weight:600;font-size:14px}
+  .pc-tag{font-size:11.5px;color:var(--muted)}
+  .badge{font-size:9.5px;font-weight:700;padding:4px 9px;border-radius:999px;flex:none}
+  .badge.direct{background:var(--blush);color:var(--rose-deep)}
+  .badge.observed{background:#F6EFE7;color:var(--amber)}
+  .pc-remove{border:none;background:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px;flex:none}
+  .add-person-btn{width:100%;padding:15px;border-radius:16px;border:1.5px dashed var(--gold);background:transparent;color:var(--rose-deep);font-weight:600;font-size:14px;cursor:pointer;margin-top:12px}
+  .chip-row{display:flex;gap:8px}
+  .chip{flex:1;padding:11px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:13px;font-weight:600;cursor:pointer}
+  .chip.on{border-color:var(--rose);background:var(--blush);color:var(--rose-deep)}
+  .mode-choice{display:flex;gap:8px;margin-top:10px}
+  .mode-card{flex:1;text-align:left;padding:13px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer}
+  .mode-card.on{border-color:var(--rose);background:var(--blush)}
+  .mode-card .mt{font-weight:700;font-size:12.5px;margin-bottom:3px}
+  .mode-card .md{font-size:10.5px;color:var(--muted);line-height:1.4}
+  .invite-box{margin-top:16px;background:var(--blush);border:1px solid #E6CBD3;border-radius:16px;padding:16px}
+  .invite-link-row{display:flex;gap:8px;align-items:center;margin:10px 0}
+  .invite-link-row code{flex:1;min-width:0;overflow-wrap:anywhere;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:10.5px}
+
+  /* compare / metric rows (MATCH·CRUSH·PAIR) */
+  .compare-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-sm);padding:18px;margin-bottom:12px}
+  .compare-who{font-weight:700;font-family:'Nanum Myeongjo',serif;font-size:16px;margin-bottom:10px}
+  .compare-note{font-size:13px;color:var(--ink-soft);line-height:1.65;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+  .metric-row{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+  .metric-label{font-size:11.5px;color:var(--ink-soft);width:90px;flex:none}
+  .metric-bar{flex:1;height:6px;background:var(--blush);border-radius:99px;overflow:hidden}
+  .metric-bar>div{height:100%;background:linear-gradient(90deg,var(--gold),var(--rose));border-radius:99px}
+  .metric-val{width:26px;text-align:right;font-size:11.5px;font-weight:700}
+  .locked-card{opacity:.6}
+  .folded-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  .folded-item{display:flex;justify-content:space-between;align-items:center;padding:13px 15px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+  .folded-n{font-size:13px;font-weight:600}
+  .folded-d{font-size:11px;color:var(--muted)}
+
+  /* purchase sheet */
+  .sheet-overlay{position:fixed;inset:0;background:rgba(58,37,48,.45);z-index:40}
+  .sheet2{position:fixed;left:0;right:0;bottom:0;max-width:430px;margin:0 auto;z-index:41;background:var(--surface);border-radius:24px 24px 0 0;padding:22px 22px calc(24px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 40px rgba(0,0,0,.15)}
+  .sheet2 h3{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:19px;margin:0 0 4px}
+  .sheet2 .sub2{color:var(--ink-soft);font-size:13px;margin:0 0 14px}
+  .sheet2 .price2{margin:6px 0 14px}
+  .sheet2 .price2 .was{color:var(--muted);text-decoration:line-through;font-size:13px;margin-right:7px}
+  .sheet2 .price2 .now{font-family:'Fraunces',serif;font-weight:700;font-size:22px;color:var(--rose-deep)}
+  .sheet-note{font-size:11.5px;color:var(--muted);background:var(--ground);border-radius:12px;padding:10px 12px;margin-top:12px;line-height:1.55}
+
+  /* impact / misread (PAIR) */
+  .impact-cols{display:flex;gap:9px;margin-top:2px}
+  .impact-col{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px}
+  .impact-col h4{margin:0 0 9px;font-size:11.5px;color:var(--ink-soft);font-weight:700}
+  .impact-item{display:flex;justify-content:space-between;font-size:11.5px;padding:4px 0}
+  .impact-pos{color:var(--rose-deep);font-weight:700}
+  .misread-card{background:#F6EFE7;border:1px solid #ECDCC6;border-radius:14px;padding:13px 15px;margin-top:9px}
+  .misread-t{font-weight:700;font-size:12.5px;margin-bottom:4px;color:var(--amber)}
+  .misread-card p{margin:0;font-size:11.5px;color:var(--ink-soft);line-height:1.55}
+
+  /* admin */
+  .admin-stat-grid{display:flex;gap:9px;margin:18px 0}
+  .admin-stat{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px;text-align:center}
+  .admin-stat .al{font-size:10.5px;color:var(--muted);font-weight:700}
+  .admin-stat .av{font-size:20px;font-weight:800;margin-top:5px;color:var(--rose-deep);font-family:'Fraunces',serif}
 </style>
 
 <div class="wrap" id="app"></div>
 
-<script>const DATA = {"questions":[{"id":"ME_Q01","category":"연애초기","prompt":"썸을 타는 사람이 주말 이틀을 전부 같이 보내자고 한다. 가장 가까운 반응은?","options":[{"id":"A","text":"좋다. 이틀 내내 같이 있어도 즐거울 것 같다.","score":{"intimacy":3,"personalSpace":-2,"giveTime":1}},{"id":"B","text":"하루는 같이 보내고 하루는 각자 보내자고 한다.","score":{"intimacy":1,"personalSpace":2,"flexibility":2}},{"id":"C","text":"좋아해도 주말 전체를 같이 보내는 건 부담스럽다.","score":{"intimacy":-2,"personalSpace":3}},{"id":"D","text":"그때그때 컨디션과 일정 보고 정하고 싶다.","score":{"flexibility":3,"stability":-1}}],"allowed":["intimacy","personalSpace","flexibility","stability","giveTime"]},{"id":"ME_Q02","category":"연애초기","prompt":"좋아하는 사람이 생겼는데 상대가 먼저 관계를 정의하려 하지 않는다. 나는?","options":[{"id":"A","text":"내가 먼저 “우리 지금 무슨 사이야?”라고 묻는다.","score":{"conflictDirect":2,"leadership":3,"reassurance":1,"emotionExpression":1}},{"id":"B","text":"조금 더 지켜보다가 상대 행동이 분명해지면 묻는다.","score":{"cooldown":1,"stability":1,"trustOpen":1}},{"id":"C","text":"상대가 먼저 말할 때까지 기다린다.","score":{"leadership":-2,"emotionExpression":-1,"reassurance":1}},{"id":"D","text":"정의하지 않아도 지금 즐거우면 괜찮다.","score":{"reassurance":-3,"stability":-2,"flexibility":2}}],"allowed":["conflictDirect","leadership","reassurance","emotionExpression","cooldown","stability","trustOpen","flexibility"]},{"id":"ME_Q03","category":"연애초기","prompt":"상대가 첫 데이트에서 자신의 과거 연애 이야기를 꽤 솔직하게 한다. 나는?","options":[{"id":"A","text":"솔직하게 말해줘서 오히려 신뢰가 간다.","score":{"trustOpen":3,"boundary":-1}},{"id":"B","text":"듣긴 하지만 판단은 더 만나보고 한다.","score":{"trustOpen":1,"stability":1}},{"id":"C","text":"굳이 첫 데이트에 왜 말하지 싶어 경계된다.","score":{"trustOpen":-2,"boundary":2}},{"id":"D","text":"나도 비슷한 수준으로 솔직하게 내 이야기를 한다.","score":{"emotionExpression":2,"trustOpen":2,"intimacy":1}}],"allowed":["trustOpen","boundary","stability","emotionExpression","intimacy"]},{"id":"ME_Q04","category":"연애초기","prompt":"상대가 데이트 계획을 거의 전부 나에게 맡긴다. 나는?","options":[{"id":"A","text":"내가 정하는 게 편해서 오히려 좋다.","score":{"leadership":3}},{"id":"B","text":"이번엔 내가 정하고 다음엔 상대가 정하자고 한다.","score":{"leadership":1,"flexibility":3}},{"id":"C","text":"상대도 의견을 내야 한다고 느껴 답답하다.","score":{"leadership":2,"accountability":1,"boundary":1}},{"id":"D","text":"아무 계획 없이 그날 느낌대로 움직여도 괜찮다.","score":{"stability":-2,"flexibility":2}}],"allowed":["leadership","flexibility","accountability","boundary","stability"]},{"id":"ME_Q05","category":"연애초기","prompt":"좋아하는 사람과 중요한 가치관 하나가 크게 다르다는 걸 초반에 알게 됐다. 나는?","options":[{"id":"A","text":"중요한 가치관이면 좋아해도 관계를 다시 본다.","score":{"boundary":3,"future":2,"stability":2}},{"id":"B","text":"서로 어디까지 맞출 수 있는지 먼저 이야기해본다.","score":{"flexibility":3,"conflictDirect":2,"repair":1}},{"id":"C","text":"지금 잘 맞으면 일단 만나본다.","score":{"future":-2,"stability":-1,"trustOpen":1}},{"id":"D","text":"내가 중요하게 보는 부분이면 상대가 어느 정도 맞춰줬으면 한다.","score":{"leadership":2,"flexibility":-2,"boundary":2}}],"allowed":["boundary","future","stability","flexibility","conflictDirect","repair","trustOpen","leadership"]},{"id":"ME_Q06","category":"연락·거리","prompt":"연인이 친구들과 놀러 갔는데 6시간 동안 연락이 없다. 나는?","options":[{"id":"A","text":"재밌게 노나 보다 하고 내 할 일을 한다.","score":{"contact":-3,"reassurance":-2,"personalSpace":2,"trustOpen":1}},{"id":"B","text":"별일 없는지만 한 번 확인하고 다시 내 일 한다.","score":{"contact":1,"reassurance":1,"trustOpen":1}},{"id":"C","text":"왜 연락이 없는지 신경 쓰여 계속 휴대폰을 확인한다.","score":{"contact":3,"reassurance":3}},{"id":"D","text":"나도 일부러 연락하지 않고 상대가 먼저 연락할 때까지 기다린다.","score":{"contact":2,"reassurance":2,"conflictDirect":-1,"emotionExpression":-1,"boundary":1}}],"allowed":["contact","reassurance","personalSpace","trustOpen","conflictDirect","emotionExpression","boundary"]},{"id":"ME_Q07","category":"연락·거리","prompt":"연인이 “이번 주는 너무 지쳐서 혼자 있고 싶어”라고 한다. 나는?","options":[{"id":"A","text":"편히 쉬라고 하고 먼저 연락 올 때까지 기다린다.","score":{"personalSpace":2,"privacy":3,"reassurance":-1}},{"id":"B","text":"이유를 한 번 확인한 뒤 시간을 준다.","score":{"privacy":2,"reassurance":1,"conflictDirect":1}},{"id":"C","text":"내가 뭘 잘못했는지 계속 신경 쓰인다.","score":{"reassurance":3,"intimacy":2}},{"id":"D","text":"연애 중인데 왜 혼자 있어야 하는지 이해하기 어렵다.","score":{"intimacy":3,"personalSpace":-2,"privacy":-2}}],"allowed":["personalSpace","privacy","reassurance","conflictDirect","intimacy"]},{"id":"ME_Q08","category":"연락·거리","prompt":"평소 매일 연락하던 연인이 갑자기 답장이 느려졌다. 가장 먼저 하는 행동은?","options":[{"id":"A","text":"바쁜가 보다 하고 며칠 지켜본다.","score":{"trustOpen":2,"reassurance":-2,"cooldown":1}},{"id":"B","text":"무슨 일 있는지 가볍게 물어본다.","score":{"conflictDirect":2,"contact":1}},{"id":"C","text":"나에 대한 마음이 식었는지 직접 묻는다.","score":{"reassurance":3,"conflictDirect":3,"emotionExpression":2}},{"id":"D","text":"나도 답장을 늦추며 반응을 본다.","score":{"reassurance":2,"emotionExpression":-2,"boundary":1}}],"allowed":["trustOpen","reassurance","cooldown","conflictDirect","contact","emotionExpression","boundary"]},{"id":"ME_Q09","category":"연락·거리","prompt":"연인이 하루 종일 있었던 일을 밤마다 자세히 이야기하고 싶어 한다. 나는?","options":[{"id":"A","text":"좋다. 사소한 일도 서로 많이 아는 게 좋다.","score":{"intimacy":3,"contact":3,"receiveTime":1}},{"id":"B","text":"중요한 일 중심으로 공유하면 좋겠다.","score":{"intimacy":1,"personalSpace":1,"flexibility":1}},{"id":"C","text":"매일 그렇게 공유하는 건 피곤하다.","score":{"personalSpace":3,"contact":-2}},{"id":"D","text":"내가 말할 기분일 때만 이야기하고 싶다.","score":{"personalSpace":2,"emotionExpression":-1,"privacy":2}}],"allowed":["intimacy","contact","receiveTime","personalSpace","flexibility","emotionExpression","privacy"]},{"id":"ME_Q10","category":"연락·거리","prompt":"연인이 내 일정과 위치를 자주 궁금해한다. 처음엔 관심 같았지만 점점 잦아진다. 나는?","options":[{"id":"A","text":"숨길 게 없으니 알려주는 편이다.","score":{"privacy":-2,"reassurance":1}},{"id":"B","text":"필요한 정도는 알려주되 매번 확인하는 건 선을 정한다.","score":{"privacy":3,"boundary":2,"flexibility":2}},{"id":"C","text":"왜 그렇게 확인하는지 이유부터 물어본다.","score":{"conflictDirect":2,"solution":1,"boundary":1}},{"id":"D","text":"내 사생활을 통제하려는 느낌이 들어 바로 거리를 둔다.","score":{"privacy":3,"boundary":3,"repair":-1}}],"allowed":["privacy","reassurance","boundary","flexibility","conflictDirect","solution","repair"]},{"id":"ME_Q11","category":"연락·거리","prompt":"연인이 매일 자기 전 통화를 꼭 하고 싶어 한다. 나는?","options":[{"id":"A","text":"나도 좋아서 웬만하면 맞춘다.","score":{"contact":3,"intimacy":2,"giveTime":2}},{"id":"B","text":"좋지만 매일은 부담스러워 횟수를 조율한다.","score":{"contact":1,"personalSpace":2,"flexibility":3}},{"id":"C","text":"통화보다 메시지가 편하다.","score":{"personalSpace":1,"emotionExpression":-1}},{"id":"D","text":"정해진 연락 루틴 자체가 답답하다.","score":{"stability":-2,"personalSpace":3,"contact":-2}}],"allowed":["contact","intimacy","giveTime","personalSpace","flexibility","emotionExpression","stability"]},{"id":"ME_Q12","category":"연락·거리","prompt":"연인이 여행을 가서 사진과 상황을 실시간으로 계속 보내준다. 나는?","options":[{"id":"A","text":"좋다. 같이 여행하는 기분이라 반갑다.","score":{"contact":3,"intimacy":2,"receiveTime":1}},{"id":"B","text":"중간중간 몇 장이면 충분하다.","score":{"contact":1,"personalSpace":1}},{"id":"C","text":"여행 중엔 여행에 집중하고 나중에 이야기해도 된다.","score":{"contact":-2,"privacy":2,"personalSpace":2}},{"id":"D","text":"나도 비슷하게 실시간 공유하는 편이다.","score":{"giveTime":1,"contact":2,"emotionExpression":1}}],"allowed":["contact","intimacy","receiveTime","personalSpace","privacy","giveTime","emotionExpression"]},{"id":"ME_Q13","category":"신뢰·경계","prompt":"연인이 이성 친구와 단둘이 술을 마신 사실을 다음 날 알게 됐다. 아무 일은 없었다. 나는?","options":[{"id":"A","text":"아무 일 없었다면 크게 문제 삼지 않는다.","score":{"trustOpen":3,"boundary":-2,"privacy":2}},{"id":"B","text":"만난 건 괜찮지만 미리 말하지 않은 이유는 묻는다.","score":{"boundary":2,"conflictDirect":2,"accountability":1}},{"id":"C","text":"단둘이 술을 마신 것 자체가 내 기준에선 선을 넘었다.","score":{"boundary":3,"trustOpen":-1}},{"id":"D","text":"앞으로 서로의 기준을 정확히 정하자고 한다.","score":{"solution":2,"flexibility":2,"boundary":2}}],"allowed":["trustOpen","boundary","privacy","conflictDirect","accountability","solution","flexibility"]},{"id":"ME_Q14","category":"신뢰·경계","prompt":"연인이 내 휴대폰을 보여달라고 한다. 특별히 숨길 것은 없다. 나는?","options":[{"id":"A","text":"보여준다. 연인 사이에 그 정도는 가능하다고 본다.","score":{"privacy":-2,"reassurance":1}},{"id":"B","text":"이번엔 보여주지만 왜 보고 싶은지는 묻는다.","score":{"privacy":1,"conflictDirect":2,"flexibility":1}},{"id":"C","text":"숨길 게 없어도 휴대폰은 개인 영역이라 거절한다.","score":{"privacy":3,"boundary":2}},{"id":"D","text":"나도 상대 휴대폰을 볼 수 있다면 서로 공개할 수 있다.","score":{"privacy":-1,"boundary":1}}],"allowed":["privacy","reassurance","conflictDirect","flexibility","boundary"]},{"id":"ME_Q15","category":"신뢰·경계","prompt":"연인이 작은 거짓말을 했고, 들킨 뒤 “괜히 싸울까 봐 그랬다”고 한다. 나는?","options":[{"id":"A","text":"내용이 작으면 이유를 듣고 넘어갈 수 있다.","score":{"trustOpen":1,"boundary":-1,"repair":1}},{"id":"B","text":"거짓말한 이유와 다음에 어떻게 할지 이야기한다.","score":{"solution":2,"accountability":2,"repair":2}},{"id":"C","text":"작은 거짓말이어도 신뢰 문제라 꽤 오래 본다.","score":{"boundary":3,"trustOpen":-2}},{"id":"D","text":"사과보다 이후 행동이 바뀌는지 지켜본다.","score":{"solution":2,"trustOpen":-1,"stability":1}}],"allowed":["trustOpen","boundary","repair","solution","accountability","stability"]},{"id":"ME_Q16","category":"신뢰·경계","prompt":"연인이 전 연인과 가끔 안부를 주고받는다고 솔직히 말한다. 나는?","options":[{"id":"A","text":"현재 관계가 확실하면 신경 쓰지 않는다.","score":{"trustOpen":3,"boundary":-2,"reassurance":-1}},{"id":"B","text":"어떤 관계인지 듣고 내 기준을 말한다.","score":{"conflictDirect":2,"boundary":1,"flexibility":1}},{"id":"C","text":"굳이 연락을 이어갈 이유가 없다고 생각한다.","score":{"boundary":3,"trustOpen":-1}},{"id":"D","text":"그 연락이 계속된다면 나도 관계를 다시 생각한다.","score":{"boundary":3,"repair":-1,"stability":2}}],"allowed":["trustOpen","boundary","reassurance","conflictDirect","flexibility","repair","stability"]},{"id":"ME_Q17","category":"신뢰·경계","prompt":"연인이 술자리에서 실수로 다른 사람에게 과하게 친밀하게 행동했다. 본인은 기억이 흐릿하다. 나는?","options":[{"id":"A","text":"실수였고 다시 안 하면 넘어갈 수 있다.","score":{"repair":2,"boundary":-1}},{"id":"B","text":"당시 상황과 행동을 정확히 확인하고 이야기한다.","score":{"conflictDirect":2,"accountability":2,"solution":1}},{"id":"C","text":"술 때문이어도 행동 자체는 책임져야 한다고 본다.","score":{"accountability":3,"boundary":2}},{"id":"D","text":"내 기준에 따라서는 한 번으로도 관계를 끝낼 수 있다.","score":{"boundary":3,"repair":-3}}],"allowed":["repair","boundary","conflictDirect","accountability","solution"]},{"id":"ME_Q18","category":"신뢰·경계","prompt":"연인이 “난 원래 사람을 잘 못 믿어. 네가 계속 증명해줬으면 좋겠어”라고 한다. 나는?","options":[{"id":"A","text":"시간이 걸리더라도 행동으로 신뢰를 보여준다.","score":{"repair":2,"stability":2,"giveHelp":1}},{"id":"B","text":"어느 정도는 이해하지만 내가 계속 증명해야 하는 관계는 부담스럽다.","score":{"privacy":2,"boundary":2,"personalSpace":1}},{"id":"C","text":"신뢰는 기본적으로 서로 주고 시작해야 한다고 생각한다.","score":{"trustOpen":3,"reassurance":-1}},{"id":"D","text":"왜 그렇게 못 믿는지 함께 원인을 풀어본다.","score":{"empathy":2,"solution":2,"repair":2}}],"allowed":["repair","stability","giveHelp","privacy","boundary","personalSpace","trustOpen","reassurance","empathy","solution"]},{"id":"ME_Q19","category":"신뢰·경계","prompt":"연인이 중요한 약속을 두 번 연속 어겼다. 세 번째 약속 전에 나는?","options":[{"id":"A","text":"이번엔 지켜보자고 한 번 더 믿는다.","score":{"trustOpen":2,"repair":2}},{"id":"B","text":"왜 반복되는지와 현실적인 대안을 이야기한다.","score":{"solution":3,"conflictDirect":2,"flexibility":1}},{"id":"C","text":"다음부터는 말보다 행동을 보고 판단한다.","score":{"trustOpen":-1,"stability":2,"boundary":2}},{"id":"D","text":"두 번이면 충분하다. 이 관계의 신뢰를 다시 생각한다.","score":{"boundary":3,"repair":-2}}],"allowed":["trustOpen","repair","solution","conflictDirect","flexibility","stability","boundary"]},{"id":"ME_Q20","category":"갈등","prompt":"큰 싸움 직후 상대가 “지금 바로 끝까지 이야기하자”고 한다. 나는?","options":[{"id":"A","text":"좋다. 오늘 안에 해결해야 마음이 편하다.","score":{"conflictDirect":3,"cooldown":-3}},{"id":"B","text":"30분~몇 시간만 진정하고 다시 이야기하자고 한다.","score":{"conflictDirect":2,"cooldown":2,"flexibility":2}},{"id":"C","text":"오늘은 말하면 더 망칠 것 같아 다음 날 이야기한다.","score":{"cooldown":3,"conflictDirect":1}},{"id":"D","text":"상대가 먼저 진정될 때까지 아예 말을 줄인다.","score":{"cooldown":3,"emotionExpression":-2,"conflictDirect":-2}}],"allowed":["conflictDirect","cooldown","flexibility","emotionExpression"]},{"id":"ME_Q21","category":"갈등","prompt":"연인이 화가 나서 “됐어, 말하기 싫어”라고 한다. 나는?","options":[{"id":"A","text":"그래도 지금 무슨 문제인지 말해달라고 한다.","score":{"conflictDirect":3,"cooldown":-1,"reassurance":1}},{"id":"B","text":"언제 다시 이야기할지만 정하고 시간을 준다.","score":{"conflictDirect":2,"cooldown":2,"stability":1}},{"id":"C","text":"알겠다고 하고 상대가 먼저 올 때까지 기다린다.","score":{"cooldown":2,"conflictDirect":-1}},{"id":"D","text":"나도 기분 상해서 대화를 끊는다.","score":{"emotionExpression":-1,"repair":-2,"boundary":1}}],"allowed":["conflictDirect","cooldown","reassurance","stability","emotionExpression","repair","boundary"]},{"id":"ME_Q22","category":"갈등","prompt":"연인이 직장에서 크게 화난 채 전화를 걸어왔다. 가장 먼저 하는 반응은?","options":[{"id":"A","text":"“진짜 힘들었겠다” 하며 충분히 들어준다.","score":{"empathy":3,"giveTime":1,"giveWords":1}},{"id":"B","text":"누가 뭘 잘못했는지 상황부터 정리해본다.","score":{"solution":2,"accountability":1}},{"id":"C","text":"당장 할 수 있는 해결방법을 같이 찾는다.","score":{"solution":3,"giveHelp":2}},{"id":"D","text":"원하는 게 위로인지 해결책인지 먼저 묻는다.","score":{"empathy":2,"solution":2,"flexibility":2}}],"allowed":["empathy","solution","accountability","flexibility","giveTime","giveWords","giveHelp"]},{"id":"ME_Q23","category":"갈등","prompt":"연인이 내게 상처되는 말을 하고 나중에 “화나서 한 말이야”라고 한다. 나는?","options":[{"id":"A","text":"진심이 아니었다면 사과 받고 넘어갈 수 있다.","score":{"repair":2,"accountability":2}},{"id":"B","text":"왜 그런 말이 나왔는지까지 이야기해야 풀린다.","score":{"conflictDirect":2,"solution":1,"accountability":2}},{"id":"C","text":"화났다고 해도 해서는 안 되는 말은 있다고 본다.","score":{"boundary":3,"accountability":2}},{"id":"D","text":"말은 오래 남아서 당분간 거리를 둔다.","score":{"boundary":2,"cooldown":2,"repair":-1}}],"allowed":["repair","accountability","conflictDirect","solution","boundary","cooldown"]},{"id":"ME_Q24","category":"갈등","prompt":"같은 문제로 세 번째 싸웠다. 나는?","options":[{"id":"A","text":"이번엔 규칙이나 방법을 구체적으로 바꾼다.","score":{"solution":3,"repair":2,"stability":1}},{"id":"B","text":"왜 계속 반복되는지 둘의 감정을 충분히 이야기한다.","score":{"empathy":2,"conflictDirect":2,"repair":2}},{"id":"C","text":"세 번이면 서로 안 맞는 부분일 수 있다고 본다.","score":{"repair":-1,"future":2,"boundary":1}},{"id":"D","text":"중요한 문제가 아니면 서로 포기할 부분을 정한다.","score":{"flexibility":3,"repair":1}}],"allowed":["solution","repair","stability","empathy","conflictDirect","future","boundary","flexibility"]},{"id":"ME_Q25","category":"갈등","prompt":"내가 잘못한 건 맞지만 상대도 잘못이 있다고 느낀다. 사과해야 한다면?","options":[{"id":"A","text":"내 잘못부터 깔끔하게 사과한다.","score":{"accountability":3,"repair":2}},{"id":"B","text":"내 잘못을 사과한 뒤 상대 잘못도 이야기한다.","score":{"accountability":2,"conflictDirect":2}},{"id":"C","text":"서로 잘못한 부분을 같이 정리한 뒤 사과하고 싶다.","score":{"solution":2,"accountability":2,"flexibility":2}},{"id":"D","text":"상대가 자기 잘못을 인정하지 않으면 나만 먼저 사과하긴 싫다.","score":{"accountability":1,"repair":-1,"boundary":2}}],"allowed":["accountability","repair","conflictDirect","solution","flexibility","boundary"]},{"id":"ME_Q26","category":"갈등","prompt":"연인이 내가 화난 이유를 전혀 이해하지 못한다. 나는?","options":[{"id":"A","text":"구체적인 상황과 이유를 차근차근 설명한다.","score":{"emotionExpression":2,"conflictDirect":2,"solution":1}},{"id":"B","text":"먼저 내 감정이 어떤지 알아줬으면 좋겠다고 말한다.","score":{"emotionExpression":2,"empathy":3}},{"id":"C","text":"한두 번 설명했는데도 모르겠으면 말하기 싫어진다.","score":{"cooldown":2,"repair":-1,"emotionExpression":-1}},{"id":"D","text":"상대 입장에서는 왜 그렇게 생각하는지 먼저 들어본다.","score":{"empathy":2,"flexibility":2}}],"allowed":["emotionExpression","conflictDirect","solution","empathy","cooldown","repair","flexibility"]},{"id":"ME_Q27","category":"갈등","prompt":"싸움 중 상대가 울기 시작했다. 내 주장이 여전히 맞다고 생각한다. 나는?","options":[{"id":"A","text":"일단 싸움을 멈추고 상대 감정부터 달랜다.","score":{"empathy":3,"repair":2}},{"id":"B","text":"진정시킨 뒤 문제 이야기는 반드시 다시 한다.","score":{"empathy":2,"conflictDirect":2,"repair":2}},{"id":"C","text":"우는 것과 문제의 옳고 그름은 별개라 이야기를 계속한다.","score":{"solution":2,"empathy":-2,"conflictDirect":2}},{"id":"D","text":"그날은 대화를 끝내고 나중에 다시 꺼낸다.","score":{"cooldown":3,"conflictDirect":1}}],"allowed":["empathy","repair","conflictDirect","solution","cooldown"]},{"id":"ME_Q28","category":"갈등","prompt":"싸운 뒤 화해는 했지만 마음이 완전히 풀리지 않았다. 나는?","options":[{"id":"A","text":"남은 감정을 다시 솔직히 이야기한다.","score":{"emotionExpression":3,"conflictDirect":2}},{"id":"B","text":"상대 행동이 달라지는지 지켜보며 자연스럽게 풀린다.","score":{"trustOpen":-1,"stability":1,"cooldown":1}},{"id":"C","text":"이미 화해했으니 더 꺼내지 않으려고 한다.","score":{"emotionExpression":-2,"repair":1}},{"id":"D","text":"시간이 지나도 남으면 그때 다시 이야기한다.","score":{"cooldown":2,"conflictDirect":1,"flexibility":1}}],"allowed":["emotionExpression","conflictDirect","trustOpen","stability","cooldown","repair","flexibility"]},{"id":"ME_Q29","category":"사랑표현","prompt":"연인이 힘든 하루를 보냈다고 한다. 내가 가장 자연스럽게 해줄 행동은?","options":[{"id":"A","text":"“오늘 진짜 고생했어” 같은 말을 많이 해준다.","score":{"giveWords":3,"empathy":1}},{"id":"B","text":"시간을 내서 만나거나 오래 통화해준다.","score":{"giveTime":3,"intimacy":1}},{"id":"C","text":"안아주거나 손을 잡아준다.","score":{"giveTouch":3}},{"id":"D","text":"필요한 일을 대신 해주거나 해결해준다.","score":{"giveHelp":3,"solution":1}}],"allowed":["giveWords","giveTime","giveTouch","giveHelp","empathy","intimacy","solution"]},{"id":"ME_Q30","category":"사랑표현","prompt":"별일 없는 평범한 날, 연인에게 애정을 표현하고 싶다. 가장 가까운 방식은?","options":[{"id":"A","text":"보고 싶다, 사랑한다 같은 메시지를 보낸다.","score":{"giveWords":3,"emotionExpression":1}},{"id":"B","text":"같이 밥 먹거나 산책할 시간을 만든다.","score":{"giveTime":3}},{"id":"C","text":"작은 간식이나 선물을 사간다.","score":{"giveGift":3}},{"id":"D","text":"상대가 귀찮아하던 일을 대신 처리해준다.","score":{"giveHelp":3}}],"allowed":["giveWords","giveTime","giveGift","giveHelp","emotionExpression"]},{"id":"ME_Q31","category":"사랑표현","prompt":"기념일을 챙길 때 내 스타일과 가장 가까운 것은?","options":[{"id":"A","text":"마음이 담긴 편지나 말을 준비한다.","score":{"giveWords":3}},{"id":"B","text":"둘이 오래 기억할 경험이나 시간을 만든다.","score":{"giveTime":3}},{"id":"C","text":"상대 취향에 맞는 선물을 고른다.","score":{"giveGift":3}},{"id":"D","text":"기념일 자체보다 평소 행동이 더 중요하다고 생각한다.","score":{"giveGift":-2,"giveHelp":1,"stability":1}}],"allowed":["giveWords","giveTime","giveGift","giveHelp","stability"]},{"id":"ME_Q32","category":"사랑표현","prompt":"연인이 아파서 집에서 쉬고 있다. 내가 가장 먼저 하고 싶은 것은?","options":[{"id":"A","text":"걱정된다고 계속 연락하며 상태를 묻는다.","score":{"giveWords":2,"contact":1}},{"id":"B","text":"직접 가서 곁에 있어준다.","score":{"giveTime":3,"giveTouch":1}},{"id":"C","text":"죽이나 약, 필요한 물건을 챙겨준다.","score":{"giveHelp":3,"giveGift":2}},{"id":"D","text":"쉬는 게 중요하니 필요한 게 있으면 말하라고 하고 시간을 준다.","score":{"privacy":2,"giveHelp":1}}],"allowed":["giveWords","contact","giveTime","giveTouch","giveHelp","giveGift","privacy"]},{"id":"ME_Q33","category":"사랑표현","prompt":"내가 가장 사랑받는다고 느끼는 순간은?","options":[{"id":"A","text":"상대가 좋아한다고 분명하게 말해줄 때.","score":{"receiveWords":3,"reassurance":1}},{"id":"B","text":"바쁜데도 나를 위해 시간을 내줄 때.","score":{"receiveTime":3,"intimacy":1}},{"id":"C","text":"자연스럽게 안아주거나 손을 잡아줄 때.","score":{"receiveTouch":3}},{"id":"D","text":"내가 힘들 때 실제로 나서서 도와줄 때.","score":{"receiveHelp":3,"solution":1}}],"allowed":["receiveWords","reassurance","receiveTime","intimacy","receiveTouch","receiveHelp","solution"]},{"id":"ME_Q34","category":"사랑표현","prompt":"연인이 내 생일에 다음 중 하나만 해줄 수 있다면 무엇이 가장 좋을까?","options":[{"id":"A","text":"진심이 담긴 긴 편지.","score":{"receiveWords":3}},{"id":"B","text":"하루를 통째로 비워 나와 함께 보내기.","score":{"receiveTime":3}},{"id":"C","text":"내가 오래 갖고 싶었던 선물.","score":{"receiveGift":3}},{"id":"D","text":"내가 요즘 가장 힘들어하던 문제 하나를 해결해주기.","score":{"receiveHelp":3}}],"allowed":["receiveWords","receiveTime","receiveGift","receiveHelp"]},{"id":"ME_Q35","category":"관계운영","prompt":"둘이 가고 싶은 여행지가 완전히 다르다. 나는?","options":[{"id":"A","text":"각자 이유를 말하고 중간 지점을 찾는다.","score":{"flexibility":3,"empathy":1}},{"id":"B","text":"이번엔 상대가 원하는 곳, 다음엔 내가 원하는 곳으로 간다.","score":{"flexibility":3,"stability":1}},{"id":"C","text":"더 좋은 선택이라고 생각하는 쪽으로 설득한다.","score":{"leadership":2,"solution":2,"flexibility":-1}},{"id":"D","text":"나는 크게 상관없으니 상대가 정하게 한다.","score":{"leadership":-3,"flexibility":2}}],"allowed":["flexibility","empathy","stability","leadership","solution"]},{"id":"ME_Q36","category":"관계운영","prompt":"연인이 중요한 결정을 계속 미룬다. 나는?","options":[{"id":"A","text":"선택지를 정리해서 내가 결론을 제안한다.","score":{"leadership":3,"solution":2}},{"id":"B","text":"왜 결정하기 어려운지부터 같이 이야기한다.","score":{"empathy":2,"solution":1,"flexibility":1}},{"id":"C","text":"충분히 생각할 시간을 주고 기다린다.","score":{"cooldown":1,"privacy":2,"leadership":-1}},{"id":"D","text":"내가 대신 정하는 건 싫고 상대가 책임지고 결정해야 한다고 본다.","score":{"accountability":2,"boundary":1}}],"allowed":["leadership","solution","empathy","flexibility","cooldown","privacy","accountability","boundary"]},{"id":"ME_Q37","category":"관계운영","prompt":"둘이 함께 쓰는 돈에서 상대가 예상보다 큰 소비를 했다. 나는?","options":[{"id":"A","text":"왜 썼는지 듣고 앞으로 기준을 다시 맞춘다.","score":{"flexibility":2,"solution":2,"future":1}},{"id":"B","text":"공동 돈이면 사전에 상의했어야 한다고 분명히 말한다.","score":{"boundary":2,"accountability":2,"future":1}},{"id":"C","text":"한 번 정도는 괜찮고 반복되지만 않으면 된다.","score":{"repair":1,"boundary":-1}},{"id":"D","text":"재정관이 안 맞으면 장기적으로 관계를 다시 본다.","score":{"future":3,"stability":2,"boundary":2}}],"allowed":["flexibility","solution","future","boundary","accountability","repair","stability"]},{"id":"ME_Q38","category":"관계운영","prompt":"연인이 갑자기 새로운 취미에 빠져 나와 보내는 시간이 줄었다. 나는?","options":[{"id":"A","text":"좋은 취미면 응원하고 내 생활도 즐긴다.","score":{"personalSpace":2,"privacy":2,"trustOpen":1}},{"id":"B","text":"좋지만 우리 시간도 일정하게 확보하자고 한다.","score":{"intimacy":2,"stability":2,"flexibility":2}},{"id":"C","text":"전보다 나를 덜 중요하게 생각하는 것 같아 서운하다.","score":{"reassurance":3,"intimacy":2}},{"id":"D","text":"나도 새로운 일정을 만들며 관계 균형을 맞춘다.","score":{"personalSpace":2,"flexibility":2}}],"allowed":["personalSpace","privacy","trustOpen","intimacy","stability","flexibility","reassurance"]},{"id":"ME_Q39","category":"관계운영","prompt":"연인이 내 친구 중 한 명을 불편해하며 덜 만나달라고 한다. 나는?","options":[{"id":"A","text":"왜 불편한지 듣고 합리적이면 어느 정도 조정한다.","score":{"flexibility":3,"empathy":1,"boundary":1}},{"id":"B","text":"친구 관계는 내 영역이라 상대가 정할 문제는 아니라고 한다.","score":{"privacy":3,"boundary":2}},{"id":"C","text":"연인이 정말 힘들어하면 친구와의 거리를 줄일 수 있다.","score":{"repair":2,"intimacy":1,"privacy":-1}},{"id":"D","text":"셋이 같이 만나보거나 오해를 풀 방법을 찾는다.","score":{"solution":2,"repair":2,"flexibility":2}}],"allowed":["flexibility","empathy","boundary","privacy","repair","intimacy","solution"]},{"id":"ME_Q40","category":"미래·위기","prompt":"좋아하는 연인이 큰 커리어 기회 때문에 1년간 해외에 가야 한다. 나는?","options":[{"id":"A","text":"장거리여도 관계를 유지할 방법을 구체적으로 짠다.","score":{"repair":3,"future":3,"stability":2,"solution":2}},{"id":"B","text":"서로 미래에 이 관계가 중요한지 먼저 깊게 이야기한다.","score":{"future":3,"conflictDirect":2,"empathy":1}},{"id":"C","text":"서로에게 좋은 기회라면 잠시 떨어져도 괜찮다.","score":{"personalSpace":2,"trustOpen":2,"reassurance":-1}},{"id":"D","text":"장거리 연애가 너무 힘들 것 같으면 좋아해도 정리할 수 있다.","score":{"stability":2,"repair":-2,"future":2}}],"allowed":["repair","future","stability","solution","conflictDirect","empathy","personalSpace","trustOpen","reassurance"]},{"id":"ME_Q41","category":"미래·위기","prompt":"연인이 갑자기 일을 그만두고 1년간 꿈을 준비하고 싶다고 한다. 나는?","options":[{"id":"A","text":"구체적인 계획과 생활비 대책이 있으면 응원한다.","score":{"future":3,"stability":2,"solution":2,"flexibility":1}},{"id":"B","text":"일단 꿈을 지지하고 같이 방법을 찾아본다.","score":{"repair":2,"empathy":2,"solution":1}},{"id":"C","text":"안정적인 수입 없이 그 결정을 하는 건 걱정된다.","score":{"stability":3,"future":2}},{"id":"D","text":"상대 인생이니 내가 판단할 문제는 아니라고 본다.","score":{"privacy":2,"personalSpace":2,"leadership":-1}}],"allowed":["future","stability","solution","flexibility","repair","empathy","privacy","personalSpace","leadership"]},{"id":"ME_Q42","category":"미래·위기","prompt":"연인은 결혼을 원하지만 나는 아직 확신이 없다. 상대가 1년 안에 결정을 원한다. 나는?","options":[{"id":"A","text":"내 생각을 솔직히 말하고 결론을 내기 위한 시간을 정한다.","score":{"future":3,"conflictDirect":2,"emotionExpression":2,"stability":1}},{"id":"B","text":"상대를 놓치고 싶지 않아 일단 결혼 방향으로 맞춰본다.","score":{"repair":2,"intimacy":2,"flexibility":2}},{"id":"C","text":"확신이 없으면 상대를 위해서라도 애매하게 잡지 않는다.","score":{"boundary":2,"future":2,"repair":-1}},{"id":"D","text":"왜 꼭 1년 안이어야 하는지부터 함께 다시 논의한다.","score":{"solution":2,"flexibility":2,"conflictDirect":2}}],"allowed":["future","conflictDirect","emotionExpression","stability","repair","intimacy","flexibility","boundary","solution"]},{"id":"ME_Q43","category":"미래·위기","prompt":"관계가 안정적이지만 예전 같은 설렘은 줄었다. 나는?","options":[{"id":"A","text":"안정감도 사랑의 중요한 형태라고 생각한다.","score":{"stability":3,"repair":2}},{"id":"B","text":"둘이 새로운 경험을 만들어 설렘을 다시 만들려고 한다.","score":{"repair":2,"solution":2,"flexibility":1}},{"id":"C","text":"설렘이 너무 줄면 관계 자체를 다시 생각한다.","score":{"stability":-2,"repair":-2}},{"id":"D","text":"내 감정이 왜 변했는지 먼저 혼자 생각해본다.","score":{"cooldown":2,"emotionExpression":-1,"future":1}}],"allowed":["stability","repair","solution","flexibility","cooldown","emotionExpression","future"]},{"id":"ME_Q44","category":"미래·위기","prompt":"연인과 5년 뒤 살고 싶은 도시와 삶의 방식이 완전히 다르다는 걸 알았다. 나는?","options":[{"id":"A","text":"누가 무엇을 포기할 수 있는지 현실적으로 협상한다.","score":{"future":3,"solution":2,"flexibility":2}},{"id":"B","text":"사랑이 중요하니 그때 가서 상황에 맞춰보자고 한다.","score":{"future":-2,"repair":2,"flexibility":1}},{"id":"C","text":"핵심 인생 방향이 다르면 지금부터 진지하게 생각한다.","score":{"future":3,"stability":3,"boundary":2}},{"id":"D","text":"둘 다 원하는 삶을 최대한 유지할 제3의 방법을 찾는다.","score":{"solution":3,"flexibility":3,"future":2}}],"allowed":["future","solution","flexibility","repair","stability","boundary"]},{"id":"ME_Q45","category":"미래·위기","prompt":"연인이 큰 실수를 했고, 사과도 했고, 다시는 반복하지 않기 위한 행동도 시작했다. 하지만 나는 아직 상처가 남아 있다. 나는?","options":[{"id":"A","text":"시간이 걸려도 행동이 달라지는 걸 보며 관계를 회복해본다.","score":{"repair":3,"trustOpen":1,"stability":1}},{"id":"B","text":"내가 아직 상처받아 있다는 걸 솔직하게 말하고 함께 회복한다.","score":{"emotionExpression":3,"repair":3,"empathy":1}},{"id":"C","text":"사과와 변화는 인정하지만 신뢰가 돌아오지 않으면 끝낼 수 있다.","score":{"boundary":3,"repair":1,"trustOpen":-1}},{"id":"D","text":"이미 충분히 바뀌려 한다면 과거 감정은 내가 정리하려고 한다.","score":{"repair":2,"cooldown":1,"accountability":1}}],"allowed":["repair","trustOpen","stability","emotionExpression","empathy","boundary","cooldown","accountability"]}],"centroids":{"fox":{"label":"전략가","vector":[60,60,50,35,60,55,65,85,25,45,90,70,60,75,55,70,60,65]},"dog":{"label":"조율가","vector":[80,35,75,55,75,45,55,65,40,90,45,70,85,45,85,90,70,65]},"cat":{"label":"독립가","vector":[45,90,25,20,60,35,95,55,75,45,65,55,35,60,65,55,55,50]},"rabbit":{"label":"로맨티스트","vector":[90,25,90,90,55,75,35,60,35,80,35,80,80,40,65,90,80,70]},"otter":{"label":"유연가","vector":[70,60,60,40,75,35,75,60,50,75,65,60,70,40,95,80,50,55]},"hedgehog":{"label":"신중가","vector":[55,70,40,45,30,75,85,40,80,60,55,80,35,45,55,65,90,80]},"wolf":{"label":"원칙가","vector":[60,55,45,35,35,90,70,80,35,45,75,95,55,70,35,55,85,75]},"tiger":{"label":"직진가","vector":[65,55,60,35,60,55,60,90,20,35,85,65,75,95,35,65,55,65]},"panda":{"label":"공감가","vector":[50,75,35,30,45,55,90,30,90,70,55,60,25,35,70,60,70,60]},"swan":{"label":"헌신가","vector":[95,20,85,70,75,60,40,55,45,85,40,75,80,35,75,95,85,85]},"dolphin":{"label":"자유가","vector":[55,85,45,20,80,20,95,50,55,60,60,45,70,45,90,50,20,25]},"owl":{"label":"설계가","vector":[60,60,50,40,55,60,75,65,55,55,80,75,50,70,60,75,95,95]}},"meta":{"fox":{"nameKo":"전략가","nameEn":"THE STRATEGIST","monogram":"S","gradient":["#E9A23B","#C9761B"],"tagline":"감정도 구조로 푸는 사람","essence":"문제가 생기면 감정에 오래 머물기보다 원인과 해법을 먼저 찾습니다. 관계를 더 낫게 만들 방법을 설계하는 데 강하고, 그만큼 명확한 대화를 선호합니다.","strengths":["갈등을 회피하지 않고 구조적으로 해결","반복되는 문제를 규칙으로 바꾸는 힘","분명한 커뮤니케이션"]},"dog":{"nameKo":"조율가","nameEn":"THE HARMONIZER","monogram":"H","gradient":["#F19AAC","#E06A83"],"tagline":"관계의 온도를 맞추는 사람","essence":"상대의 감정을 먼저 살피고 관계의 분위기를 부드럽게 유지합니다. 공감과 표현이 자연스럽고, 함께 맞춰가는 것을 사랑의 방식으로 여깁니다.","strengths":["높은 공감과 따뜻한 표현","갈등을 관계 회복으로 연결","상대가 편안함을 느끼게 하는 힘"]},"cat":{"nameKo":"독립가","nameEn":"THE INDEPENDENT","monogram":"I","gradient":["#7C8BA1","#4E5D73"],"tagline":"거리를 지키며 깊게 사랑하는 사람","essence":"사랑하더라도 각자의 공간과 사생활을 중요하게 여깁니다. 붙어 있는 시간보다 서로를 존중하는 거리에서 안정감을 느낍니다.","strengths":["건강한 경계와 자기 세계","상대의 자유도 존중","독립적이고 안정적인 태도"]},"rabbit":{"nameKo":"로맨티스트","nameEn":"THE ROMANTIC","monogram":"R","gradient":["#F48FB1","#D81B60"],"tagline":"확신과 가까움으로 사랑을 확인하는 사람","essence":"자주 연락하고 마음을 확인하며 가까이 있을 때 사랑을 크게 느낍니다. 표현이 풍부하고, 관계의 온기를 소중히 합니다.","strengths":["풍부한 애정 표현","관계에 대한 헌신과 몰입","함께하는 시간을 소중히"]},"otter":{"nameKo":"유연가","nameEn":"THE ADAPTER","monogram":"A","gradient":["#4DB6AC","#00897B"],"tagline":"부딪힘보다 맞춰가며 흐르는 사람","essence":"고집보다 조율을 택하고, 상황에 맞춰 유연하게 움직입니다. 상대와의 차이를 협상으로 풀며 관계를 편안하게 이끕니다.","strengths":["높은 유연성과 타협력","차이를 갈등 대신 조정으로","함께 있기 편안한 사람"]},"hedgehog":{"nameKo":"신중가","nameEn":"THE GUARDIAN","monogram":"G","gradient":["#9575CD","#5E35B1"],"tagline":"천천히, 안전하게 마음을 여는 사람","essence":"빠르게 다가가기보다 신중하게 관계를 살핍니다. 안정과 경계를 중요하게 여기며, 한번 연 마음은 책임 있게 지킵니다.","strengths":["신중하고 안정적인 태도","분명한 책임감","깊이 있는 신뢰 형성"]},"wolf":{"nameKo":"원칙가","nameEn":"THE KEEPER","monogram":"K","gradient":["#546E7A","#263238"],"tagline":"지킬 선과 책임이 분명한 사람","essence":"관계에서 지켜야 할 원칙과 책임을 분명히 합니다. 신뢰와 경계를 중시하고, 옳고 그름에 대한 기준이 뚜렷합니다.","strengths":["분명한 원칙과 책임감","신뢰를 지키는 일관성","흔들리지 않는 태도"]},"tiger":{"nameKo":"직진가","nameEn":"THE INITIATOR","monogram":"T","gradient":["#FF7043","#E64A19"],"tagline":"돌려 말하지 않고 바로 다가가는 사람","essence":"마음이 생기면 주도적으로 움직이고, 문제도 미루지 않고 바로 이야기합니다. 솔직하고 추진력 있는 태도가 강점입니다.","strengths":["주도적이고 솔직한 표현","갈등을 미루지 않는 추진력","분명한 방향 제시"]},"panda":{"nameKo":"공감가","nameEn":"THE EMPATH","monogram":"E","gradient":["#66BB6A","#2E7D32"],"tagline":"말보다 먼저 마음을 읽는 사람","essence":"상대의 감정을 섬세하게 관찰하고, 부딪히기보다 이해로 다가갑니다. 조용하지만 깊은 공감이 관계의 힘이 됩니다.","strengths":["깊은 공감과 관찰력","상대를 편하게 하는 배려","차분한 안정감"]},"swan":{"nameKo":"헌신가","nameEn":"THE DEVOTED","monogram":"D","gradient":["#EC407A","#AD1457"],"tagline":"한번 정하면 끝까지 가는 사람","essence":"깊이 사랑하고 오래 함께하려는 마음이 큽니다. 헌신과 안정, 미래에 대한 그림을 중요하게 여깁니다.","strengths":["깊은 헌신과 안정 지향","관계 회복 의지","미래를 함께 그리는 힘"]},"dolphin":{"nameKo":"자유가","nameEn":"THE FREE SPIRIT","monogram":"F","gradient":["#29B6F6","#0277BD"],"tagline":"구속 없이 나답게 사랑하는 사람","essence":"자유와 사생활을 사랑하고, 정해진 틀보다 지금의 자연스러움을 택합니다. 가볍고 산뜻한 관계 안에서 나답게 존재합니다.","strengths":["자유롭고 산뜻한 태도","상대에게 여유를 주는 힘","지금을 즐기는 감각"]},"owl":{"nameKo":"설계가","nameEn":"THE ARCHITECT","monogram":"A","gradient":["#5C6BC0","#283593"],"tagline":"관계의 미래를 그리는 사람","essence":"지금의 감정만이 아니라 관계가 어디로 갈지를 함께 봅니다. 안정과 계획을 바탕으로 신뢰를 쌓아가는 데 강합니다.","strengths":["미래 설계와 안정 지향","신중한 판단력","관계를 장기적으로 보는 시야"]}},"coreKeys":["intimacy","personalSpace","contact","reassurance","trustOpen","boundary","privacy","conflictDirect","cooldown","empathy","solution","accountability","emotionExpression","leadership","flexibility","repair","stability","future"],"loveKeys":["giveWords","giveTime","giveTouch","giveGift","giveHelp","receiveWords","receiveTime","receiveTouch","receiveGift","receiveHelp"],"coreLabels":{"intimacy":"친밀감 욕구","personalSpace":"개인공간 욕구","contact":"연락 연결도","reassurance":"확신 욕구","trustOpen":"신뢰 개방도","boundary":"경계 민감도","privacy":"사생활 존중도","conflictDirect":"갈등 직면도","cooldown":"냉각시간 필요도","empathy":"공감 우선도","solution":"해결책 우선도","accountability":"책임·사과 중요도","emotionExpression":"감정 표현도","leadership":"주도권 욕구","flexibility":"유연·타협도","repair":"관계 회복 의지","stability":"안정 선호도","future":"미래 설계도"},"loveLabels":{"giveWords":"주는 사랑_말","giveTime":"주는 사랑_시간","giveTouch":"주는 사랑_스킨십","giveGift":"주는 사랑_선물·기념","giveHelp":"주는 사랑_실질적 도움","receiveWords":"받는 사랑_말","receiveTime":"받는 사랑_시간","receiveTouch":"받는 사랑_스킨십","receiveGift":"받는 사랑_선물·기념","receiveHelp":"받는 사랑_실질적 도움"},"bands":{"intimacy":["거리감 속에서 오히려 편안함을 느낍니다.","가까움보다 각자의 공간이 먼저인 편입니다.","거리와 가까움 사이에서 균형을 잡습니다.","함께하는 시간에서 안정감을 얻는 편입니다.","깊이 밀착된 관계에서 사랑을 크게 느낍니다."],"personalSpace":["혼자만의 공간이 크게 필요하지 않은 편입니다.","함께 있는 쪽을 더 선호합니다.","함께와 혼자 사이 균형을 중시합니다.","나만의 시간이 꼭 필요한 편입니다.","독립된 공간이 관계만큼 중요합니다."],"contact":["연락 빈도에 크게 얽매이지 않습니다.","연락은 필요할 때 정도면 충분합니다.","적당한 연락으로 연결감을 유지합니다.","자주 연락하며 이어져 있고 싶어 합니다.","촘촘한 연락에서 연결감을 크게 느낍니다."],"reassurance":["상대의 확인 없이도 관계에 흔들리지 않습니다.","큰 확인 없이도 비교적 안정적입니다.","가끔의 확인으로 충분히 안심합니다.","마음을 확인받을 때 안정감을 얻습니다.","분명한 확신이 자주 필요한 편입니다."],"trustOpen":["신뢰는 시간과 검증을 거쳐 천천히 엽니다.","쉽게 믿기보다 지켜보는 편입니다.","상황을 보며 신뢰를 조율합니다.","비교적 열린 마음으로 신뢰합니다.","기본적으로 믿고 시작하는 편입니다."],"boundary":["웬만한 일은 크게 선을 두지 않습니다.","경계가 유연한 편입니다.","상황에 따라 선을 조절합니다.","지켜야 할 선이 분명한 편입니다.","경계에 매우 민감하고 기준이 확고합니다."],"privacy":["사생활을 공유하는 데 거리낌이 적습니다.","많은 것을 열어두는 편입니다.","공유와 사생활의 균형을 둡니다.","개인 영역을 분명히 존중받고 싶어 합니다.","사생활은 관계와 별개로 지켜져야 한다고 봅니다."],"conflictDirect":["갈등은 되도록 피하고 싶어 합니다.","정면 대립보다 우회를 택하는 편입니다.","필요할 때 조심스럽게 문제를 꺼냅니다.","문제는 피하지 않고 이야기하는 편입니다.","갈등을 정면으로, 지금 다루려는 편입니다."],"cooldown":["감정이 생기면 바로 풀어야 하는 편입니다.","오래 묵히기보다 빨리 이야기합니다.","상황에 따라 시간을 두기도 합니다.","감정을 정리할 시간이 필요한 편입니다.","충분히 식힌 뒤에야 대화가 되는 편입니다."],"empathy":["감정보다 사실과 논리가 먼저 보입니다.","위로보다 상황 파악이 앞서는 편입니다.","공감과 실용 사이 균형을 둡니다.","상대 감정을 먼저 살피는 편입니다.","무엇보다 상대의 마음을 먼저 읽습니다."],"solution":["해결보다 함께 느끼는 것을 중시합니다.","방법 제시보다 공감을 앞세우는 편입니다.","공감과 해결을 상황에 맞춰 씁니다.","문제 앞에서 해법을 먼저 떠올립니다.","위로보다 구체적 해결책이 먼저 나옵니다."],"accountability":["잘잘못을 크게 따지지 않는 편입니다.","책임 소재보다 넘어가는 쪽을 택합니다.","상황에 따라 책임을 짚습니다.","사과와 책임을 분명히 하는 편입니다.","책임과 사과의 기준이 매우 분명합니다."],"emotionExpression":["감정을 겉으로 드러내지 않는 편입니다.","표현보다 속으로 삭이는 편입니다.","필요할 때 감정을 표현합니다.","감정을 솔직하게 표현하는 편입니다.","마음을 숨기지 않고 분명히 표현합니다."],"leadership":["결정은 상대에게 맡기는 쪽이 편합니다.","주도하기보다 따라가는 편입니다.","상황에 따라 이끌거나 맞춥니다.","관계를 주도적으로 이끄는 편입니다.","방향을 직접 정하고 이끌 때 편안합니다."],"flexibility":["내 기준을 분명히 지키는 편입니다.","타협보다 원칙을 앞세우는 편입니다.","상황에 따라 조율합니다.","차이를 유연하게 맞춰가는 편입니다.","거의 언제나 조율과 타협으로 풉니다."],"repair":["틀어지면 회복보다 정리를 택하기도 합니다.","회복에 크게 매달리지 않는 편입니다.","상황을 보며 회복을 시도합니다.","한번 시작한 관계는 잘 포기하지 않습니다.","어긋나도 끝까지 회복하려는 의지가 강합니다."],"stability":["변화와 즉흥을 즐기는 편입니다.","안정보다 새로움을 선호합니다.","안정과 변화의 균형을 둡니다.","예측 가능한 안정을 선호합니다.","안정감이 관계의 핵심 조건입니다."],"future":["지금 이 순간에 집중하는 편입니다.","먼 미래보다 현재가 먼저입니다.","현재와 미래를 함께 봅니다.","관계의 미래를 자주 그려보는 편입니다.","미래 설계를 관계의 중심에 둡니다."]}};</script>
+<script>const DATA = {"questions":[{"id":"ME_Q01","category":"연애초기","prompt":"썸을 타는 사람이 주말 이틀을 전부 같이 보내자고 한다. 가장 가까운 반응은?","options":[{"id":"A","text":"좋다. 이틀 내내 같이 있어도 즐거울 것 같다.","score":{"intimacy":3,"personalSpace":-2,"giveTime":1}},{"id":"B","text":"하루는 같이 보내고 하루는 각자 보내자고 한다.","score":{"intimacy":1,"personalSpace":2,"flexibility":2}},{"id":"C","text":"좋아해도 주말 전체를 같이 보내는 건 부담스럽다.","score":{"intimacy":-2,"personalSpace":3}},{"id":"D","text":"그때그때 컨디션과 일정 보고 정하고 싶다.","score":{"flexibility":3,"stability":-1}}],"allowed":["intimacy","personalSpace","flexibility","stability","giveTime"]},{"id":"ME_Q02","category":"연애초기","prompt":"좋아하는 사람이 생겼는데 상대가 먼저 관계를 정의하려 하지 않는다. 나는?","options":[{"id":"A","text":"내가 먼저 “우리 지금 무슨 사이야?”라고 묻는다.","score":{"conflictDirect":2,"leadership":3,"reassurance":1,"emotionExpression":1}},{"id":"B","text":"조금 더 지켜보다가 상대 행동이 분명해지면 묻는다.","score":{"cooldown":1,"stability":1,"trustOpen":1}},{"id":"C","text":"상대가 먼저 말할 때까지 기다린다.","score":{"leadership":-2,"emotionExpression":-1,"reassurance":1}},{"id":"D","text":"정의하지 않아도 지금 즐거우면 괜찮다.","score":{"reassurance":-3,"stability":-2,"flexibility":2}}],"allowed":["conflictDirect","leadership","reassurance","emotionExpression","cooldown","stability","trustOpen","flexibility"]},{"id":"ME_Q03","category":"연애초기","prompt":"상대가 첫 데이트에서 자신의 과거 연애 이야기를 꽤 솔직하게 한다. 나는?","options":[{"id":"A","text":"솔직하게 말해줘서 오히려 신뢰가 간다.","score":{"trustOpen":3,"boundary":-1}},{"id":"B","text":"듣긴 하지만 판단은 더 만나보고 한다.","score":{"trustOpen":1,"stability":1}},{"id":"C","text":"굳이 첫 데이트에 왜 말하지 싶어 경계된다.","score":{"trustOpen":-2,"boundary":2}},{"id":"D","text":"나도 비슷한 수준으로 솔직하게 내 이야기를 한다.","score":{"emotionExpression":2,"trustOpen":2,"intimacy":1}}],"allowed":["trustOpen","boundary","stability","emotionExpression","intimacy"]},{"id":"ME_Q04","category":"연애초기","prompt":"상대가 데이트 계획을 거의 전부 나에게 맡긴다. 나는?","options":[{"id":"A","text":"내가 정하는 게 편해서 오히려 좋다.","score":{"leadership":3}},{"id":"B","text":"이번엔 내가 정하고 다음엔 상대가 정하자고 한다.","score":{"leadership":1,"flexibility":3}},{"id":"C","text":"상대도 의견을 내야 한다고 느껴 답답하다.","score":{"leadership":2,"accountability":1,"boundary":1}},{"id":"D","text":"아무 계획 없이 그날 느낌대로 움직여도 괜찮다.","score":{"stability":-2,"flexibility":2}}],"allowed":["leadership","flexibility","accountability","boundary","stability"]},{"id":"ME_Q05","category":"연애초기","prompt":"좋아하는 사람과 중요한 가치관 하나가 크게 다르다는 걸 초반에 알게 됐다. 나는?","options":[{"id":"A","text":"중요한 가치관이면 좋아해도 관계를 다시 본다.","score":{"boundary":3,"future":2,"stability":2}},{"id":"B","text":"서로 어디까지 맞출 수 있는지 먼저 이야기해본다.","score":{"flexibility":3,"conflictDirect":2,"repair":1}},{"id":"C","text":"지금 잘 맞으면 일단 만나본다.","score":{"future":-2,"stability":-1,"trustOpen":1}},{"id":"D","text":"내가 중요하게 보는 부분이면 상대가 어느 정도 맞춰줬으면 한다.","score":{"leadership":2,"flexibility":-2,"boundary":2}}],"allowed":["boundary","future","stability","flexibility","conflictDirect","repair","trustOpen","leadership"]},{"id":"ME_Q06","category":"연락·거리","prompt":"연인이 친구들과 놀러 갔는데 6시간 동안 연락이 없다. 나는?","options":[{"id":"A","text":"재밌게 노나 보다 하고 내 할 일을 한다.","score":{"contact":-3,"reassurance":-2,"personalSpace":2,"trustOpen":1}},{"id":"B","text":"별일 없는지만 한 번 확인하고 다시 내 일 한다.","score":{"contact":1,"reassurance":1,"trustOpen":1}},{"id":"C","text":"왜 연락이 없는지 신경 쓰여 계속 휴대폰을 확인한다.","score":{"contact":3,"reassurance":3}},{"id":"D","text":"나도 일부러 연락하지 않고 상대가 먼저 연락할 때까지 기다린다.","score":{"contact":2,"reassurance":2,"conflictDirect":-1,"emotionExpression":-1,"boundary":1}}],"allowed":["contact","reassurance","personalSpace","trustOpen","conflictDirect","emotionExpression","boundary"]},{"id":"ME_Q07","category":"연락·거리","prompt":"연인이 “이번 주는 너무 지쳐서 혼자 있고 싶어”라고 한다. 나는?","options":[{"id":"A","text":"편히 쉬라고 하고 먼저 연락 올 때까지 기다린다.","score":{"personalSpace":2,"privacy":3,"reassurance":-1}},{"id":"B","text":"이유를 한 번 확인한 뒤 시간을 준다.","score":{"privacy":2,"reassurance":1,"conflictDirect":1}},{"id":"C","text":"내가 뭘 잘못했는지 계속 신경 쓰인다.","score":{"reassurance":3,"intimacy":2}},{"id":"D","text":"연애 중인데 왜 혼자 있어야 하는지 이해하기 어렵다.","score":{"intimacy":3,"personalSpace":-2,"privacy":-2}}],"allowed":["personalSpace","privacy","reassurance","conflictDirect","intimacy"]},{"id":"ME_Q08","category":"연락·거리","prompt":"평소 매일 연락하던 연인이 갑자기 답장이 느려졌다. 가장 먼저 하는 행동은?","options":[{"id":"A","text":"바쁜가 보다 하고 며칠 지켜본다.","score":{"trustOpen":2,"reassurance":-2,"cooldown":1}},{"id":"B","text":"무슨 일 있는지 가볍게 물어본다.","score":{"conflictDirect":2,"contact":1}},{"id":"C","text":"나에 대한 마음이 식었는지 직접 묻는다.","score":{"reassurance":3,"conflictDirect":3,"emotionExpression":2}},{"id":"D","text":"나도 답장을 늦추며 반응을 본다.","score":{"reassurance":2,"emotionExpression":-2,"boundary":1}}],"allowed":["trustOpen","reassurance","cooldown","conflictDirect","contact","emotionExpression","boundary"]},{"id":"ME_Q09","category":"연락·거리","prompt":"연인이 하루 종일 있었던 일을 밤마다 자세히 이야기하고 싶어 한다. 나는?","options":[{"id":"A","text":"좋다. 사소한 일도 서로 많이 아는 게 좋다.","score":{"intimacy":3,"contact":3,"receiveTime":1}},{"id":"B","text":"중요한 일 중심으로 공유하면 좋겠다.","score":{"intimacy":1,"personalSpace":1,"flexibility":1}},{"id":"C","text":"매일 그렇게 공유하는 건 피곤하다.","score":{"personalSpace":3,"contact":-2}},{"id":"D","text":"내가 말할 기분일 때만 이야기하고 싶다.","score":{"personalSpace":2,"emotionExpression":-1,"privacy":2}}],"allowed":["intimacy","contact","receiveTime","personalSpace","flexibility","emotionExpression","privacy"]},{"id":"ME_Q10","category":"연락·거리","prompt":"연인이 내 일정과 위치를 자주 궁금해한다. 처음엔 관심 같았지만 점점 잦아진다. 나는?","options":[{"id":"A","text":"숨길 게 없으니 알려주는 편이다.","score":{"privacy":-2,"reassurance":1}},{"id":"B","text":"필요한 정도는 알려주되 매번 확인하는 건 선을 정한다.","score":{"privacy":3,"boundary":2,"flexibility":2}},{"id":"C","text":"왜 그렇게 확인하는지 이유부터 물어본다.","score":{"conflictDirect":2,"solution":1,"boundary":1}},{"id":"D","text":"내 사생활을 통제하려는 느낌이 들어 바로 거리를 둔다.","score":{"privacy":3,"boundary":3,"repair":-1}}],"allowed":["privacy","reassurance","boundary","flexibility","conflictDirect","solution","repair"]},{"id":"ME_Q11","category":"연락·거리","prompt":"연인이 매일 자기 전 통화를 꼭 하고 싶어 한다. 나는?","options":[{"id":"A","text":"나도 좋아서 웬만하면 맞춘다.","score":{"contact":3,"intimacy":2,"giveTime":2}},{"id":"B","text":"좋지만 매일은 부담스러워 횟수를 조율한다.","score":{"contact":1,"personalSpace":2,"flexibility":3}},{"id":"C","text":"통화보다 메시지가 편하다.","score":{"personalSpace":1,"emotionExpression":-1}},{"id":"D","text":"정해진 연락 루틴 자체가 답답하다.","score":{"stability":-2,"personalSpace":3,"contact":-2}}],"allowed":["contact","intimacy","giveTime","personalSpace","flexibility","emotionExpression","stability"]},{"id":"ME_Q12","category":"연락·거리","prompt":"연인이 여행을 가서 사진과 상황을 실시간으로 계속 보내준다. 나는?","options":[{"id":"A","text":"좋다. 같이 여행하는 기분이라 반갑다.","score":{"contact":3,"intimacy":2,"receiveTime":1}},{"id":"B","text":"중간중간 몇 장이면 충분하다.","score":{"contact":1,"personalSpace":1}},{"id":"C","text":"여행 중엔 여행에 집중하고 나중에 이야기해도 된다.","score":{"contact":-2,"privacy":2,"personalSpace":2}},{"id":"D","text":"나도 비슷하게 실시간 공유하는 편이다.","score":{"giveTime":1,"contact":2,"emotionExpression":1}}],"allowed":["contact","intimacy","receiveTime","personalSpace","privacy","giveTime","emotionExpression"]},{"id":"ME_Q13","category":"신뢰·경계","prompt":"연인이 이성 친구와 단둘이 술을 마신 사실을 다음 날 알게 됐다. 아무 일은 없었다. 나는?","options":[{"id":"A","text":"아무 일 없었다면 크게 문제 삼지 않는다.","score":{"trustOpen":3,"boundary":-2,"privacy":2}},{"id":"B","text":"만난 건 괜찮지만 미리 말하지 않은 이유는 묻는다.","score":{"boundary":2,"conflictDirect":2,"accountability":1}},{"id":"C","text":"단둘이 술을 마신 것 자체가 내 기준에선 선을 넘었다.","score":{"boundary":3,"trustOpen":-1}},{"id":"D","text":"앞으로 서로의 기준을 정확히 정하자고 한다.","score":{"solution":2,"flexibility":2,"boundary":2}}],"allowed":["trustOpen","boundary","privacy","conflictDirect","accountability","solution","flexibility"]},{"id":"ME_Q14","category":"신뢰·경계","prompt":"연인이 내 휴대폰을 보여달라고 한다. 특별히 숨길 것은 없다. 나는?","options":[{"id":"A","text":"보여준다. 연인 사이에 그 정도는 가능하다고 본다.","score":{"privacy":-2,"reassurance":1}},{"id":"B","text":"이번엔 보여주지만 왜 보고 싶은지는 묻는다.","score":{"privacy":1,"conflictDirect":2,"flexibility":1}},{"id":"C","text":"숨길 게 없어도 휴대폰은 개인 영역이라 거절한다.","score":{"privacy":3,"boundary":2}},{"id":"D","text":"나도 상대 휴대폰을 볼 수 있다면 서로 공개할 수 있다.","score":{"privacy":-1,"boundary":1}}],"allowed":["privacy","reassurance","conflictDirect","flexibility","boundary"]},{"id":"ME_Q15","category":"신뢰·경계","prompt":"연인이 작은 거짓말을 했고, 들킨 뒤 “괜히 싸울까 봐 그랬다”고 한다. 나는?","options":[{"id":"A","text":"내용이 작으면 이유를 듣고 넘어갈 수 있다.","score":{"trustOpen":1,"boundary":-1,"repair":1}},{"id":"B","text":"거짓말한 이유와 다음에 어떻게 할지 이야기한다.","score":{"solution":2,"accountability":2,"repair":2}},{"id":"C","text":"작은 거짓말이어도 신뢰 문제라 꽤 오래 본다.","score":{"boundary":3,"trustOpen":-2}},{"id":"D","text":"사과보다 이후 행동이 바뀌는지 지켜본다.","score":{"solution":2,"trustOpen":-1,"stability":1}}],"allowed":["trustOpen","boundary","repair","solution","accountability","stability"]},{"id":"ME_Q16","category":"신뢰·경계","prompt":"연인이 전 연인과 가끔 안부를 주고받는다고 솔직히 말한다. 나는?","options":[{"id":"A","text":"현재 관계가 확실하면 신경 쓰지 않는다.","score":{"trustOpen":3,"boundary":-2,"reassurance":-1}},{"id":"B","text":"어떤 관계인지 듣고 내 기준을 말한다.","score":{"conflictDirect":2,"boundary":1,"flexibility":1}},{"id":"C","text":"굳이 연락을 이어갈 이유가 없다고 생각한다.","score":{"boundary":3,"trustOpen":-1}},{"id":"D","text":"그 연락이 계속된다면 나도 관계를 다시 생각한다.","score":{"boundary":3,"repair":-1,"stability":2}}],"allowed":["trustOpen","boundary","reassurance","conflictDirect","flexibility","repair","stability"]},{"id":"ME_Q17","category":"신뢰·경계","prompt":"연인이 술자리에서 실수로 다른 사람에게 과하게 친밀하게 행동했다. 본인은 기억이 흐릿하다. 나는?","options":[{"id":"A","text":"실수였고 다시 안 하면 넘어갈 수 있다.","score":{"repair":2,"boundary":-1}},{"id":"B","text":"당시 상황과 행동을 정확히 확인하고 이야기한다.","score":{"conflictDirect":2,"accountability":2,"solution":1}},{"id":"C","text":"술 때문이어도 행동 자체는 책임져야 한다고 본다.","score":{"accountability":3,"boundary":2}},{"id":"D","text":"내 기준에 따라서는 한 번으로도 관계를 끝낼 수 있다.","score":{"boundary":3,"repair":-3}}],"allowed":["repair","boundary","conflictDirect","accountability","solution"]},{"id":"ME_Q18","category":"신뢰·경계","prompt":"연인이 “난 원래 사람을 잘 못 믿어. 네가 계속 증명해줬으면 좋겠어”라고 한다. 나는?","options":[{"id":"A","text":"시간이 걸리더라도 행동으로 신뢰를 보여준다.","score":{"repair":2,"stability":2,"giveHelp":1}},{"id":"B","text":"어느 정도는 이해하지만 내가 계속 증명해야 하는 관계는 부담스럽다.","score":{"privacy":2,"boundary":2,"personalSpace":1}},{"id":"C","text":"신뢰는 기본적으로 서로 주고 시작해야 한다고 생각한다.","score":{"trustOpen":3,"reassurance":-1}},{"id":"D","text":"왜 그렇게 못 믿는지 함께 원인을 풀어본다.","score":{"empathy":2,"solution":2,"repair":2}}],"allowed":["repair","stability","giveHelp","privacy","boundary","personalSpace","trustOpen","reassurance","empathy","solution"]},{"id":"ME_Q19","category":"신뢰·경계","prompt":"연인이 중요한 약속을 두 번 연속 어겼다. 세 번째 약속 전에 나는?","options":[{"id":"A","text":"이번엔 지켜보자고 한 번 더 믿는다.","score":{"trustOpen":2,"repair":2}},{"id":"B","text":"왜 반복되는지와 현실적인 대안을 이야기한다.","score":{"solution":3,"conflictDirect":2,"flexibility":1}},{"id":"C","text":"다음부터는 말보다 행동을 보고 판단한다.","score":{"trustOpen":-1,"stability":2,"boundary":2}},{"id":"D","text":"두 번이면 충분하다. 이 관계의 신뢰를 다시 생각한다.","score":{"boundary":3,"repair":-2}}],"allowed":["trustOpen","repair","solution","conflictDirect","flexibility","stability","boundary"]},{"id":"ME_Q20","category":"갈등","prompt":"큰 싸움 직후 상대가 “지금 바로 끝까지 이야기하자”고 한다. 나는?","options":[{"id":"A","text":"좋다. 오늘 안에 해결해야 마음이 편하다.","score":{"conflictDirect":3,"cooldown":-3}},{"id":"B","text":"30분~몇 시간만 진정하고 다시 이야기하자고 한다.","score":{"conflictDirect":2,"cooldown":2,"flexibility":2}},{"id":"C","text":"오늘은 말하면 더 망칠 것 같아 다음 날 이야기한다.","score":{"cooldown":3,"conflictDirect":1}},{"id":"D","text":"상대가 먼저 진정될 때까지 아예 말을 줄인다.","score":{"cooldown":3,"emotionExpression":-2,"conflictDirect":-2}}],"allowed":["conflictDirect","cooldown","flexibility","emotionExpression"]},{"id":"ME_Q21","category":"갈등","prompt":"연인이 화가 나서 “됐어, 말하기 싫어”라고 한다. 나는?","options":[{"id":"A","text":"그래도 지금 무슨 문제인지 말해달라고 한다.","score":{"conflictDirect":3,"cooldown":-1,"reassurance":1}},{"id":"B","text":"언제 다시 이야기할지만 정하고 시간을 준다.","score":{"conflictDirect":2,"cooldown":2,"stability":1}},{"id":"C","text":"알겠다고 하고 상대가 먼저 올 때까지 기다린다.","score":{"cooldown":2,"conflictDirect":-1}},{"id":"D","text":"나도 기분 상해서 대화를 끊는다.","score":{"emotionExpression":-1,"repair":-2,"boundary":1}}],"allowed":["conflictDirect","cooldown","reassurance","stability","emotionExpression","repair","boundary"]},{"id":"ME_Q22","category":"갈등","prompt":"연인이 직장에서 크게 화난 채 전화를 걸어왔다. 가장 먼저 하는 반응은?","options":[{"id":"A","text":"“진짜 힘들었겠다” 하며 충분히 들어준다.","score":{"empathy":3,"giveTime":1,"giveWords":1}},{"id":"B","text":"누가 뭘 잘못했는지 상황부터 정리해본다.","score":{"solution":2,"accountability":1}},{"id":"C","text":"당장 할 수 있는 해결방법을 같이 찾는다.","score":{"solution":3,"giveHelp":2}},{"id":"D","text":"원하는 게 위로인지 해결책인지 먼저 묻는다.","score":{"empathy":2,"solution":2,"flexibility":2}}],"allowed":["empathy","solution","accountability","flexibility","giveTime","giveWords","giveHelp"]},{"id":"ME_Q23","category":"갈등","prompt":"연인이 내게 상처되는 말을 하고 나중에 “화나서 한 말이야”라고 한다. 나는?","options":[{"id":"A","text":"진심이 아니었다면 사과 받고 넘어갈 수 있다.","score":{"repair":2,"accountability":2}},{"id":"B","text":"왜 그런 말이 나왔는지까지 이야기해야 풀린다.","score":{"conflictDirect":2,"solution":1,"accountability":2}},{"id":"C","text":"화났다고 해도 해서는 안 되는 말은 있다고 본다.","score":{"boundary":3,"accountability":2}},{"id":"D","text":"말은 오래 남아서 당분간 거리를 둔다.","score":{"boundary":2,"cooldown":2,"repair":-1}}],"allowed":["repair","accountability","conflictDirect","solution","boundary","cooldown"]},{"id":"ME_Q24","category":"갈등","prompt":"같은 문제로 세 번째 싸웠다. 나는?","options":[{"id":"A","text":"이번엔 규칙이나 방법을 구체적으로 바꾼다.","score":{"solution":3,"repair":2,"stability":1}},{"id":"B","text":"왜 계속 반복되는지 둘의 감정을 충분히 이야기한다.","score":{"empathy":2,"conflictDirect":2,"repair":2}},{"id":"C","text":"세 번이면 서로 안 맞는 부분일 수 있다고 본다.","score":{"repair":-1,"future":2,"boundary":1}},{"id":"D","text":"중요한 문제가 아니면 서로 포기할 부분을 정한다.","score":{"flexibility":3,"repair":1}}],"allowed":["solution","repair","stability","empathy","conflictDirect","future","boundary","flexibility"]},{"id":"ME_Q25","category":"갈등","prompt":"내가 잘못한 건 맞지만 상대도 잘못이 있다고 느낀다. 사과해야 한다면?","options":[{"id":"A","text":"내 잘못부터 깔끔하게 사과한다.","score":{"accountability":3,"repair":2}},{"id":"B","text":"내 잘못을 사과한 뒤 상대 잘못도 이야기한다.","score":{"accountability":2,"conflictDirect":2}},{"id":"C","text":"서로 잘못한 부분을 같이 정리한 뒤 사과하고 싶다.","score":{"solution":2,"accountability":2,"flexibility":2}},{"id":"D","text":"상대가 자기 잘못을 인정하지 않으면 나만 먼저 사과하긴 싫다.","score":{"accountability":1,"repair":-1,"boundary":2}}],"allowed":["accountability","repair","conflictDirect","solution","flexibility","boundary"]},{"id":"ME_Q26","category":"갈등","prompt":"연인이 내가 화난 이유를 전혀 이해하지 못한다. 나는?","options":[{"id":"A","text":"구체적인 상황과 이유를 차근차근 설명한다.","score":{"emotionExpression":2,"conflictDirect":2,"solution":1}},{"id":"B","text":"먼저 내 감정이 어떤지 알아줬으면 좋겠다고 말한다.","score":{"emotionExpression":2,"empathy":3}},{"id":"C","text":"한두 번 설명했는데도 모르겠으면 말하기 싫어진다.","score":{"cooldown":2,"repair":-1,"emotionExpression":-1}},{"id":"D","text":"상대 입장에서는 왜 그렇게 생각하는지 먼저 들어본다.","score":{"empathy":2,"flexibility":2}}],"allowed":["emotionExpression","conflictDirect","solution","empathy","cooldown","repair","flexibility"]},{"id":"ME_Q27","category":"갈등","prompt":"싸움 중 상대가 울기 시작했다. 내 주장이 여전히 맞다고 생각한다. 나는?","options":[{"id":"A","text":"일단 싸움을 멈추고 상대 감정부터 달랜다.","score":{"empathy":3,"repair":2}},{"id":"B","text":"진정시킨 뒤 문제 이야기는 반드시 다시 한다.","score":{"empathy":2,"conflictDirect":2,"repair":2}},{"id":"C","text":"우는 것과 문제의 옳고 그름은 별개라 이야기를 계속한다.","score":{"solution":2,"empathy":-2,"conflictDirect":2}},{"id":"D","text":"그날은 대화를 끝내고 나중에 다시 꺼낸다.","score":{"cooldown":3,"conflictDirect":1}}],"allowed":["empathy","repair","conflictDirect","solution","cooldown"]},{"id":"ME_Q28","category":"갈등","prompt":"싸운 뒤 화해는 했지만 마음이 완전히 풀리지 않았다. 나는?","options":[{"id":"A","text":"남은 감정을 다시 솔직히 이야기한다.","score":{"emotionExpression":3,"conflictDirect":2}},{"id":"B","text":"상대 행동이 달라지는지 지켜보며 자연스럽게 풀린다.","score":{"trustOpen":-1,"stability":1,"cooldown":1}},{"id":"C","text":"이미 화해했으니 더 꺼내지 않으려고 한다.","score":{"emotionExpression":-2,"repair":1}},{"id":"D","text":"시간이 지나도 남으면 그때 다시 이야기한다.","score":{"cooldown":2,"conflictDirect":1,"flexibility":1}}],"allowed":["emotionExpression","conflictDirect","trustOpen","stability","cooldown","repair","flexibility"]},{"id":"ME_Q29","category":"사랑표현","prompt":"연인이 힘든 하루를 보냈다고 한다. 내가 가장 자연스럽게 해줄 행동은?","options":[{"id":"A","text":"“오늘 진짜 고생했어” 같은 말을 많이 해준다.","score":{"giveWords":3,"empathy":1}},{"id":"B","text":"시간을 내서 만나거나 오래 통화해준다.","score":{"giveTime":3,"intimacy":1}},{"id":"C","text":"안아주거나 손을 잡아준다.","score":{"giveTouch":3}},{"id":"D","text":"필요한 일을 대신 해주거나 해결해준다.","score":{"giveHelp":3,"solution":1}}],"allowed":["giveWords","giveTime","giveTouch","giveHelp","empathy","intimacy","solution"]},{"id":"ME_Q30","category":"사랑표현","prompt":"별일 없는 평범한 날, 연인에게 애정을 표현하고 싶다. 가장 가까운 방식은?","options":[{"id":"A","text":"보고 싶다, 사랑한다 같은 메시지를 보낸다.","score":{"giveWords":3,"emotionExpression":1}},{"id":"B","text":"같이 밥 먹거나 산책할 시간을 만든다.","score":{"giveTime":3}},{"id":"C","text":"작은 간식이나 선물을 사간다.","score":{"giveGift":3}},{"id":"D","text":"상대가 귀찮아하던 일을 대신 처리해준다.","score":{"giveHelp":3}}],"allowed":["giveWords","giveTime","giveGift","giveHelp","emotionExpression"]},{"id":"ME_Q31","category":"사랑표현","prompt":"기념일을 챙길 때 내 스타일과 가장 가까운 것은?","options":[{"id":"A","text":"마음이 담긴 편지나 말을 준비한다.","score":{"giveWords":3}},{"id":"B","text":"둘이 오래 기억할 경험이나 시간을 만든다.","score":{"giveTime":3}},{"id":"C","text":"상대 취향에 맞는 선물을 고른다.","score":{"giveGift":3}},{"id":"D","text":"기념일 자체보다 평소 행동이 더 중요하다고 생각한다.","score":{"giveGift":-2,"giveHelp":1,"stability":1}}],"allowed":["giveWords","giveTime","giveGift","giveHelp","stability"]},{"id":"ME_Q32","category":"사랑표현","prompt":"연인이 아파서 집에서 쉬고 있다. 내가 가장 먼저 하고 싶은 것은?","options":[{"id":"A","text":"걱정된다고 계속 연락하며 상태를 묻는다.","score":{"giveWords":2,"contact":1}},{"id":"B","text":"직접 가서 곁에 있어준다.","score":{"giveTime":3,"giveTouch":1}},{"id":"C","text":"죽이나 약, 필요한 물건을 챙겨준다.","score":{"giveHelp":3,"giveGift":2}},{"id":"D","text":"쉬는 게 중요하니 필요한 게 있으면 말하라고 하고 시간을 준다.","score":{"privacy":2,"giveHelp":1}}],"allowed":["giveWords","contact","giveTime","giveTouch","giveHelp","giveGift","privacy"]},{"id":"ME_Q33","category":"사랑표현","prompt":"내가 가장 사랑받는다고 느끼는 순간은?","options":[{"id":"A","text":"상대가 좋아한다고 분명하게 말해줄 때.","score":{"receiveWords":3,"reassurance":1}},{"id":"B","text":"바쁜데도 나를 위해 시간을 내줄 때.","score":{"receiveTime":3,"intimacy":1}},{"id":"C","text":"자연스럽게 안아주거나 손을 잡아줄 때.","score":{"receiveTouch":3}},{"id":"D","text":"내가 힘들 때 실제로 나서서 도와줄 때.","score":{"receiveHelp":3,"solution":1}}],"allowed":["receiveWords","reassurance","receiveTime","intimacy","receiveTouch","receiveHelp","solution"]},{"id":"ME_Q34","category":"사랑표현","prompt":"연인이 내 생일에 다음 중 하나만 해줄 수 있다면 무엇이 가장 좋을까?","options":[{"id":"A","text":"진심이 담긴 긴 편지.","score":{"receiveWords":3}},{"id":"B","text":"하루를 통째로 비워 나와 함께 보내기.","score":{"receiveTime":3}},{"id":"C","text":"내가 오래 갖고 싶었던 선물.","score":{"receiveGift":3}},{"id":"D","text":"내가 요즘 가장 힘들어하던 문제 하나를 해결해주기.","score":{"receiveHelp":3}}],"allowed":["receiveWords","receiveTime","receiveGift","receiveHelp"]},{"id":"ME_Q35","category":"관계운영","prompt":"둘이 가고 싶은 여행지가 완전히 다르다. 나는?","options":[{"id":"A","text":"각자 이유를 말하고 중간 지점을 찾는다.","score":{"flexibility":3,"empathy":1}},{"id":"B","text":"이번엔 상대가 원하는 곳, 다음엔 내가 원하는 곳으로 간다.","score":{"flexibility":3,"stability":1}},{"id":"C","text":"더 좋은 선택이라고 생각하는 쪽으로 설득한다.","score":{"leadership":2,"solution":2,"flexibility":-1}},{"id":"D","text":"나는 크게 상관없으니 상대가 정하게 한다.","score":{"leadership":-3,"flexibility":2}}],"allowed":["flexibility","empathy","stability","leadership","solution"]},{"id":"ME_Q36","category":"관계운영","prompt":"연인이 중요한 결정을 계속 미룬다. 나는?","options":[{"id":"A","text":"선택지를 정리해서 내가 결론을 제안한다.","score":{"leadership":3,"solution":2}},{"id":"B","text":"왜 결정하기 어려운지부터 같이 이야기한다.","score":{"empathy":2,"solution":1,"flexibility":1}},{"id":"C","text":"충분히 생각할 시간을 주고 기다린다.","score":{"cooldown":1,"privacy":2,"leadership":-1}},{"id":"D","text":"내가 대신 정하는 건 싫고 상대가 책임지고 결정해야 한다고 본다.","score":{"accountability":2,"boundary":1}}],"allowed":["leadership","solution","empathy","flexibility","cooldown","privacy","accountability","boundary"]},{"id":"ME_Q37","category":"관계운영","prompt":"둘이 함께 쓰는 돈에서 상대가 예상보다 큰 소비를 했다. 나는?","options":[{"id":"A","text":"왜 썼는지 듣고 앞으로 기준을 다시 맞춘다.","score":{"flexibility":2,"solution":2,"future":1}},{"id":"B","text":"공동 돈이면 사전에 상의했어야 한다고 분명히 말한다.","score":{"boundary":2,"accountability":2,"future":1}},{"id":"C","text":"한 번 정도는 괜찮고 반복되지만 않으면 된다.","score":{"repair":1,"boundary":-1}},{"id":"D","text":"재정관이 안 맞으면 장기적으로 관계를 다시 본다.","score":{"future":3,"stability":2,"boundary":2}}],"allowed":["flexibility","solution","future","boundary","accountability","repair","stability"]},{"id":"ME_Q38","category":"관계운영","prompt":"연인이 갑자기 새로운 취미에 빠져 나와 보내는 시간이 줄었다. 나는?","options":[{"id":"A","text":"좋은 취미면 응원하고 내 생활도 즐긴다.","score":{"personalSpace":2,"privacy":2,"trustOpen":1}},{"id":"B","text":"좋지만 우리 시간도 일정하게 확보하자고 한다.","score":{"intimacy":2,"stability":2,"flexibility":2}},{"id":"C","text":"전보다 나를 덜 중요하게 생각하는 것 같아 서운하다.","score":{"reassurance":3,"intimacy":2}},{"id":"D","text":"나도 새로운 일정을 만들며 관계 균형을 맞춘다.","score":{"personalSpace":2,"flexibility":2}}],"allowed":["personalSpace","privacy","trustOpen","intimacy","stability","flexibility","reassurance"]},{"id":"ME_Q39","category":"관계운영","prompt":"연인이 내 친구 중 한 명을 불편해하며 덜 만나달라고 한다. 나는?","options":[{"id":"A","text":"왜 불편한지 듣고 합리적이면 어느 정도 조정한다.","score":{"flexibility":3,"empathy":1,"boundary":1}},{"id":"B","text":"친구 관계는 내 영역이라 상대가 정할 문제는 아니라고 한다.","score":{"privacy":3,"boundary":2}},{"id":"C","text":"연인이 정말 힘들어하면 친구와의 거리를 줄일 수 있다.","score":{"repair":2,"intimacy":1,"privacy":-1}},{"id":"D","text":"셋이 같이 만나보거나 오해를 풀 방법을 찾는다.","score":{"solution":2,"repair":2,"flexibility":2}}],"allowed":["flexibility","empathy","boundary","privacy","repair","intimacy","solution"]},{"id":"ME_Q40","category":"미래·위기","prompt":"좋아하는 연인이 큰 커리어 기회 때문에 1년간 해외에 가야 한다. 나는?","options":[{"id":"A","text":"장거리여도 관계를 유지할 방법을 구체적으로 짠다.","score":{"repair":3,"future":3,"stability":2,"solution":2}},{"id":"B","text":"서로 미래에 이 관계가 중요한지 먼저 깊게 이야기한다.","score":{"future":3,"conflictDirect":2,"empathy":1}},{"id":"C","text":"서로에게 좋은 기회라면 잠시 떨어져도 괜찮다.","score":{"personalSpace":2,"trustOpen":2,"reassurance":-1}},{"id":"D","text":"장거리 연애가 너무 힘들 것 같으면 좋아해도 정리할 수 있다.","score":{"stability":2,"repair":-2,"future":2}}],"allowed":["repair","future","stability","solution","conflictDirect","empathy","personalSpace","trustOpen","reassurance"]},{"id":"ME_Q41","category":"미래·위기","prompt":"연인이 갑자기 일을 그만두고 1년간 꿈을 준비하고 싶다고 한다. 나는?","options":[{"id":"A","text":"구체적인 계획과 생활비 대책이 있으면 응원한다.","score":{"future":3,"stability":2,"solution":2,"flexibility":1}},{"id":"B","text":"일단 꿈을 지지하고 같이 방법을 찾아본다.","score":{"repair":2,"empathy":2,"solution":1}},{"id":"C","text":"안정적인 수입 없이 그 결정을 하는 건 걱정된다.","score":{"stability":3,"future":2}},{"id":"D","text":"상대 인생이니 내가 판단할 문제는 아니라고 본다.","score":{"privacy":2,"personalSpace":2,"leadership":-1}}],"allowed":["future","stability","solution","flexibility","repair","empathy","privacy","personalSpace","leadership"]},{"id":"ME_Q42","category":"미래·위기","prompt":"연인은 결혼을 원하지만 나는 아직 확신이 없다. 상대가 1년 안에 결정을 원한다. 나는?","options":[{"id":"A","text":"내 생각을 솔직히 말하고 결론을 내기 위한 시간을 정한다.","score":{"future":3,"conflictDirect":2,"emotionExpression":2,"stability":1}},{"id":"B","text":"상대를 놓치고 싶지 않아 일단 결혼 방향으로 맞춰본다.","score":{"repair":2,"intimacy":2,"flexibility":2}},{"id":"C","text":"확신이 없으면 상대를 위해서라도 애매하게 잡지 않는다.","score":{"boundary":2,"future":2,"repair":-1}},{"id":"D","text":"왜 꼭 1년 안이어야 하는지부터 함께 다시 논의한다.","score":{"solution":2,"flexibility":2,"conflictDirect":2}}],"allowed":["future","conflictDirect","emotionExpression","stability","repair","intimacy","flexibility","boundary","solution"]},{"id":"ME_Q43","category":"미래·위기","prompt":"관계가 안정적이지만 예전 같은 설렘은 줄었다. 나는?","options":[{"id":"A","text":"안정감도 사랑의 중요한 형태라고 생각한다.","score":{"stability":3,"repair":2}},{"id":"B","text":"둘이 새로운 경험을 만들어 설렘을 다시 만들려고 한다.","score":{"repair":2,"solution":2,"flexibility":1}},{"id":"C","text":"설렘이 너무 줄면 관계 자체를 다시 생각한다.","score":{"stability":-2,"repair":-2}},{"id":"D","text":"내 감정이 왜 변했는지 먼저 혼자 생각해본다.","score":{"cooldown":2,"emotionExpression":-1,"future":1}}],"allowed":["stability","repair","solution","flexibility","cooldown","emotionExpression","future"]},{"id":"ME_Q44","category":"미래·위기","prompt":"연인과 5년 뒤 살고 싶은 도시와 삶의 방식이 완전히 다르다는 걸 알았다. 나는?","options":[{"id":"A","text":"누가 무엇을 포기할 수 있는지 현실적으로 협상한다.","score":{"future":3,"solution":2,"flexibility":2}},{"id":"B","text":"사랑이 중요하니 그때 가서 상황에 맞춰보자고 한다.","score":{"future":-2,"repair":2,"flexibility":1}},{"id":"C","text":"핵심 인생 방향이 다르면 지금부터 진지하게 생각한다.","score":{"future":3,"stability":3,"boundary":2}},{"id":"D","text":"둘 다 원하는 삶을 최대한 유지할 제3의 방법을 찾는다.","score":{"solution":3,"flexibility":3,"future":2}}],"allowed":["future","solution","flexibility","repair","stability","boundary"]},{"id":"ME_Q45","category":"미래·위기","prompt":"연인이 큰 실수를 했고, 사과도 했고, 다시는 반복하지 않기 위한 행동도 시작했다. 하지만 나는 아직 상처가 남아 있다. 나는?","options":[{"id":"A","text":"시간이 걸려도 행동이 달라지는 걸 보며 관계를 회복해본다.","score":{"repair":3,"trustOpen":1,"stability":1}},{"id":"B","text":"내가 아직 상처받아 있다는 걸 솔직하게 말하고 함께 회복한다.","score":{"emotionExpression":3,"repair":3,"empathy":1}},{"id":"C","text":"사과와 변화는 인정하지만 신뢰가 돌아오지 않으면 끝낼 수 있다.","score":{"boundary":3,"repair":1,"trustOpen":-1}},{"id":"D","text":"이미 충분히 바뀌려 한다면 과거 감정은 내가 정리하려고 한다.","score":{"repair":2,"cooldown":1,"accountability":1}}],"allowed":["repair","trustOpen","stability","emotionExpression","empathy","boundary","cooldown","accountability"]}],"centroids":{"fox":{"label":"전략가","vector":[60,60,50,35,60,55,65,85,25,45,90,70,60,75,55,70,60,65]},"dog":{"label":"조율가","vector":[80,35,75,55,75,45,55,65,40,90,45,70,85,45,85,90,70,65]},"cat":{"label":"독립가","vector":[45,90,25,20,60,35,95,55,75,45,65,55,35,60,65,55,55,50]},"rabbit":{"label":"로맨티스트","vector":[90,25,90,90,55,75,35,60,35,80,35,80,80,40,65,90,80,70]},"otter":{"label":"유연가","vector":[70,60,60,40,75,35,75,60,50,75,65,60,70,40,95,80,50,55]},"hedgehog":{"label":"신중가","vector":[55,70,40,45,30,75,85,40,80,60,55,80,35,45,55,65,90,80]},"wolf":{"label":"원칙가","vector":[60,55,45,35,35,90,70,80,35,45,75,95,55,70,35,55,85,75]},"tiger":{"label":"직진가","vector":[65,55,60,35,60,55,60,90,20,35,85,65,75,95,35,65,55,65]},"panda":{"label":"공감가","vector":[50,75,35,30,45,55,90,30,90,70,55,60,25,35,70,60,70,60]},"swan":{"label":"헌신가","vector":[95,20,85,70,75,60,40,55,45,85,40,75,80,35,75,95,85,85]},"dolphin":{"label":"자유가","vector":[55,85,45,20,80,20,95,50,55,60,60,45,70,45,90,50,20,25]},"owl":{"label":"설계가","vector":[60,60,50,40,55,60,75,65,55,55,80,75,50,70,60,75,95,95]}},"meta":{"fox":{"nameKo":"전략가","nameEn":"THE STRATEGIST","monogram":"S","gradient":["#E9A23B","#C9761B"],"tagline":"감정도 구조로 푸는 사람","essence":"문제가 생기면 감정에 오래 머물기보다 원인과 해법을 먼저 찾습니다. 관계를 더 낫게 만들 방법을 설계하는 데 강하고, 그만큼 명확한 대화를 선호합니다.","strengths":["갈등을 회피하지 않고 구조적으로 해결","반복되는 문제를 규칙으로 바꾸는 힘","분명한 커뮤니케이션"]},"dog":{"nameKo":"조율가","nameEn":"THE HARMONIZER","monogram":"H","gradient":["#F19AAC","#E06A83"],"tagline":"관계의 온도를 맞추는 사람","essence":"상대의 감정을 먼저 살피고 관계의 분위기를 부드럽게 유지합니다. 공감과 표현이 자연스럽고, 함께 맞춰가는 것을 사랑의 방식으로 여깁니다.","strengths":["높은 공감과 따뜻한 표현","갈등을 관계 회복으로 연결","상대가 편안함을 느끼게 하는 힘"]},"cat":{"nameKo":"독립가","nameEn":"THE INDEPENDENT","monogram":"I","gradient":["#7C8BA1","#4E5D73"],"tagline":"거리를 지키며 깊게 사랑하는 사람","essence":"사랑하더라도 각자의 공간과 사생활을 중요하게 여깁니다. 붙어 있는 시간보다 서로를 존중하는 거리에서 안정감을 느낍니다.","strengths":["건강한 경계와 자기 세계","상대의 자유도 존중","독립적이고 안정적인 태도"]},"rabbit":{"nameKo":"로맨티스트","nameEn":"THE ROMANTIC","monogram":"R","gradient":["#F48FB1","#D81B60"],"tagline":"확신과 가까움으로 사랑을 확인하는 사람","essence":"자주 연락하고 마음을 확인하며 가까이 있을 때 사랑을 크게 느낍니다. 표현이 풍부하고, 관계의 온기를 소중히 합니다.","strengths":["풍부한 애정 표현","관계에 대한 헌신과 몰입","함께하는 시간을 소중히"]},"otter":{"nameKo":"유연가","nameEn":"THE ADAPTER","monogram":"A","gradient":["#4DB6AC","#00897B"],"tagline":"부딪힘보다 맞춰가며 흐르는 사람","essence":"고집보다 조율을 택하고, 상황에 맞춰 유연하게 움직입니다. 상대와의 차이를 협상으로 풀며 관계를 편안하게 이끕니다.","strengths":["높은 유연성과 타협력","차이를 갈등 대신 조정으로","함께 있기 편안한 사람"]},"hedgehog":{"nameKo":"신중가","nameEn":"THE GUARDIAN","monogram":"G","gradient":["#9575CD","#5E35B1"],"tagline":"천천히, 안전하게 마음을 여는 사람","essence":"빠르게 다가가기보다 신중하게 관계를 살핍니다. 안정과 경계를 중요하게 여기며, 한번 연 마음은 책임 있게 지킵니다.","strengths":["신중하고 안정적인 태도","분명한 책임감","깊이 있는 신뢰 형성"]},"wolf":{"nameKo":"원칙가","nameEn":"THE KEEPER","monogram":"K","gradient":["#546E7A","#263238"],"tagline":"지킬 선과 책임이 분명한 사람","essence":"관계에서 지켜야 할 원칙과 책임을 분명히 합니다. 신뢰와 경계를 중시하고, 옳고 그름에 대한 기준이 뚜렷합니다.","strengths":["분명한 원칙과 책임감","신뢰를 지키는 일관성","흔들리지 않는 태도"]},"tiger":{"nameKo":"직진가","nameEn":"THE INITIATOR","monogram":"T","gradient":["#FF7043","#E64A19"],"tagline":"돌려 말하지 않고 바로 다가가는 사람","essence":"마음이 생기면 주도적으로 움직이고, 문제도 미루지 않고 바로 이야기합니다. 솔직하고 추진력 있는 태도가 강점입니다.","strengths":["주도적이고 솔직한 표현","갈등을 미루지 않는 추진력","분명한 방향 제시"]},"panda":{"nameKo":"공감가","nameEn":"THE EMPATH","monogram":"E","gradient":["#66BB6A","#2E7D32"],"tagline":"말보다 먼저 마음을 읽는 사람","essence":"상대의 감정을 섬세하게 관찰하고, 부딪히기보다 이해로 다가갑니다. 조용하지만 깊은 공감이 관계의 힘이 됩니다.","strengths":["깊은 공감과 관찰력","상대를 편하게 하는 배려","차분한 안정감"]},"swan":{"nameKo":"헌신가","nameEn":"THE DEVOTED","monogram":"D","gradient":["#EC407A","#AD1457"],"tagline":"한번 정하면 끝까지 가는 사람","essence":"깊이 사랑하고 오래 함께하려는 마음이 큽니다. 헌신과 안정, 미래에 대한 그림을 중요하게 여깁니다.","strengths":["깊은 헌신과 안정 지향","관계 회복 의지","미래를 함께 그리는 힘"]},"dolphin":{"nameKo":"자유가","nameEn":"THE FREE SPIRIT","monogram":"F","gradient":["#29B6F6","#0277BD"],"tagline":"구속 없이 나답게 사랑하는 사람","essence":"자유와 사생활을 사랑하고, 정해진 틀보다 지금의 자연스러움을 택합니다. 가볍고 산뜻한 관계 안에서 나답게 존재합니다.","strengths":["자유롭고 산뜻한 태도","상대에게 여유를 주는 힘","지금을 즐기는 감각"]},"owl":{"nameKo":"설계가","nameEn":"THE ARCHITECT","monogram":"A","gradient":["#5C6BC0","#283593"],"tagline":"관계의 미래를 그리는 사람","essence":"지금의 감정만이 아니라 관계가 어디로 갈지를 함께 봅니다. 안정과 계획을 바탕으로 신뢰를 쌓아가는 데 강합니다.","strengths":["미래 설계와 안정 지향","신중한 판단력","관계를 장기적으로 보는 시야"]}},"coreKeys":["intimacy","personalSpace","contact","reassurance","trustOpen","boundary","privacy","conflictDirect","cooldown","empathy","solution","accountability","emotionExpression","leadership","flexibility","repair","stability","future"],"loveKeys":["giveWords","giveTime","giveTouch","giveGift","giveHelp","receiveWords","receiveTime","receiveTouch","receiveGift","receiveHelp"],"coreLabels":{"intimacy":"친밀감 욕구","personalSpace":"개인공간 욕구","contact":"연락 연결도","reassurance":"확신 욕구","trustOpen":"신뢰 개방도","boundary":"경계 민감도","privacy":"사생활 존중도","conflictDirect":"갈등 직면도","cooldown":"냉각시간 필요도","empathy":"공감 우선도","solution":"해결책 우선도","accountability":"책임·사과 중요도","emotionExpression":"감정 표현도","leadership":"주도권 욕구","flexibility":"유연·타협도","repair":"관계 회복 의지","stability":"안정 선호도","future":"미래 설계도"},"loveLabels":{"giveWords":"주는 사랑_말","giveTime":"주는 사랑_시간","giveTouch":"주는 사랑_스킨십","giveGift":"주는 사랑_선물·기념","giveHelp":"주는 사랑_실질적 도움","receiveWords":"받는 사랑_말","receiveTime":"받는 사랑_시간","receiveTouch":"받는 사랑_스킨십","receiveGift":"받는 사랑_선물·기념","receiveHelp":"받는 사랑_실질적 도움"},"bands":{"intimacy":["거리감 속에서 오히려 편안함을 느낍니다.","가까움보다 각자의 공간이 먼저인 편입니다.","거리와 가까움 사이에서 균형을 잡습니다.","함께하는 시간에서 안정감을 얻는 편입니다.","깊이 밀착된 관계에서 사랑을 크게 느낍니다."],"personalSpace":["혼자만의 공간이 크게 필요하지 않은 편입니다.","함께 있는 쪽을 더 선호합니다.","함께와 혼자 사이 균형을 중시합니다.","나만의 시간이 꼭 필요한 편입니다.","독립된 공간이 관계만큼 중요합니다."],"contact":["연락 빈도에 크게 얽매이지 않습니다.","연락은 필요할 때 정도면 충분합니다.","적당한 연락으로 연결감을 유지합니다.","자주 연락하며 이어져 있고 싶어 합니다.","촘촘한 연락에서 연결감을 크게 느낍니다."],"reassurance":["상대의 확인 없이도 관계에 흔들리지 않습니다.","큰 확인 없이도 비교적 안정적입니다.","가끔의 확인으로 충분히 안심합니다.","마음을 확인받을 때 안정감을 얻습니다.","분명한 확신이 자주 필요한 편입니다."],"trustOpen":["신뢰는 시간과 검증을 거쳐 천천히 엽니다.","쉽게 믿기보다 지켜보는 편입니다.","상황을 보며 신뢰를 조율합니다.","비교적 열린 마음으로 신뢰합니다.","기본적으로 믿고 시작하는 편입니다."],"boundary":["웬만한 일은 크게 선을 두지 않습니다.","경계가 유연한 편입니다.","상황에 따라 선을 조절합니다.","지켜야 할 선이 분명한 편입니다.","경계에 매우 민감하고 기준이 확고합니다."],"privacy":["사생활을 공유하는 데 거리낌이 적습니다.","많은 것을 열어두는 편입니다.","공유와 사생활의 균형을 둡니다.","개인 영역을 분명히 존중받고 싶어 합니다.","사생활은 관계와 별개로 지켜져야 한다고 봅니다."],"conflictDirect":["갈등은 되도록 피하고 싶어 합니다.","정면 대립보다 우회를 택하는 편입니다.","필요할 때 조심스럽게 문제를 꺼냅니다.","문제는 피하지 않고 이야기하는 편입니다.","갈등을 정면으로, 지금 다루려는 편입니다."],"cooldown":["감정이 생기면 바로 풀어야 하는 편입니다.","오래 묵히기보다 빨리 이야기합니다.","상황에 따라 시간을 두기도 합니다.","감정을 정리할 시간이 필요한 편입니다.","충분히 식힌 뒤에야 대화가 되는 편입니다."],"empathy":["감정보다 사실과 논리가 먼저 보입니다.","위로보다 상황 파악이 앞서는 편입니다.","공감과 실용 사이 균형을 둡니다.","상대 감정을 먼저 살피는 편입니다.","무엇보다 상대의 마음을 먼저 읽습니다."],"solution":["해결보다 함께 느끼는 것을 중시합니다.","방법 제시보다 공감을 앞세우는 편입니다.","공감과 해결을 상황에 맞춰 씁니다.","문제 앞에서 해법을 먼저 떠올립니다.","위로보다 구체적 해결책이 먼저 나옵니다."],"accountability":["잘잘못을 크게 따지지 않는 편입니다.","책임 소재보다 넘어가는 쪽을 택합니다.","상황에 따라 책임을 짚습니다.","사과와 책임을 분명히 하는 편입니다.","책임과 사과의 기준이 매우 분명합니다."],"emotionExpression":["감정을 겉으로 드러내지 않는 편입니다.","표현보다 속으로 삭이는 편입니다.","필요할 때 감정을 표현합니다.","감정을 솔직하게 표현하는 편입니다.","마음을 숨기지 않고 분명히 표현합니다."],"leadership":["결정은 상대에게 맡기는 쪽이 편합니다.","주도하기보다 따라가는 편입니다.","상황에 따라 이끌거나 맞춥니다.","관계를 주도적으로 이끄는 편입니다.","방향을 직접 정하고 이끌 때 편안합니다."],"flexibility":["내 기준을 분명히 지키는 편입니다.","타협보다 원칙을 앞세우는 편입니다.","상황에 따라 조율합니다.","차이를 유연하게 맞춰가는 편입니다.","거의 언제나 조율과 타협으로 풉니다."],"repair":["틀어지면 회복보다 정리를 택하기도 합니다.","회복에 크게 매달리지 않는 편입니다.","상황을 보며 회복을 시도합니다.","한번 시작한 관계는 잘 포기하지 않습니다.","어긋나도 끝까지 회복하려는 의지가 강합니다."],"stability":["변화와 즉흥을 즐기는 편입니다.","안정보다 새로움을 선호합니다.","안정과 변화의 균형을 둡니다.","예측 가능한 안정을 선호합니다.","안정감이 관계의 핵심 조건입니다."],"future":["지금 이 순간에 집중하는 편입니다.","먼 미래보다 현재가 먼저입니다.","현재와 미래를 함께 봅니다.","관계의 미래를 자주 그려보는 편입니다.","미래 설계를 관계의 중심에 둡니다."]},"obsQuestions":[{"id":"OBS_01","category":"연락·거리","prompt":"{name}은(는) 연락이 잠깐 뜸해지면 어떤 반응을 보이나요?","options":[{"id":"A","text":"크게 신경 쓰지 않는 것 같다.","score":{"contact":-2,"reassurance":-2}},{"id":"B","text":"한 번 정도 안부를 확인하는 편이다.","score":{"contact":1}},{"id":"C","text":"왜 연락이 없는지 계속 신경 쓰는 것 같다.","score":{"contact":3,"reassurance":3}},{"id":"D","text":"먼저 연락하지 않고 기다리는 편이다.","score":{"contact":1,"reassurance":2,"conflictDirect":-1}}],"allowed":["contact","reassurance","conflictDirect"]},{"id":"OBS_02","category":"연락·거리","prompt":"{name}은(는) 혼자만의 시간에 대해 어떻게 반응하나요?","options":[{"id":"A","text":"혼자 있고 싶다고 하면 흔쾌히 존중해준다.","score":{"personalSpace":2,"privacy":3}},{"id":"B","text":"이유를 물어본 뒤 시간을 주는 편이다.","score":{"privacy":2,"conflictDirect":1}},{"id":"C","text":"왜 혼자 있고 싶은지 계속 신경 쓰는 것 같다.","score":{"reassurance":3,"intimacy":2}},{"id":"D","text":"연애 중에 혼자 있는 걸 잘 이해하지 못하는 것 같다.","score":{"intimacy":3,"personalSpace":-2,"privacy":-2}}],"allowed":["personalSpace","privacy","reassurance","intimacy"]},{"id":"OBS_03","category":"신뢰·경계","prompt":"{name}은(는) 상대의 과거 이야기를 들을 때 어떤 태도인가요?","options":[{"id":"A","text":"솔직하게 말하면 오히려 신뢰하는 편이다.","score":{"trustOpen":3,"boundary":-1}},{"id":"B","text":"듣긴 하지만 판단은 천천히 하는 편이다.","score":{"trustOpen":1}},{"id":"C","text":"듣고 나서 경계하는 모습을 보인 적 있다.","score":{"trustOpen":-2,"boundary":2}},{"id":"D","text":"비슷한 수준으로 솔직하게 자기 얘기도 하는 편이다.","score":{"emotionExpression":2,"trustOpen":2}}],"allowed":["trustOpen","boundary","emotionExpression"]},{"id":"OBS_04","category":"관계운영","prompt":"{name}은(는) 데이트 계획을 짤 때 어떤 편인가요?","options":[{"id":"A","text":"본인이 정하는 걸 편해하는 것 같다.","score":{"leadership":3}},{"id":"B","text":"번갈아 정하자고 제안하는 편이다.","score":{"leadership":1,"flexibility":3}},{"id":"C","text":"계획 없이 즉흥적으로 움직여도 괜찮아하는 편이다.","score":{"stability":-2,"flexibility":2}},{"id":"D","text":"상대가 정해주길 기다리는 편이다.","score":{"leadership":-2}}],"allowed":["leadership","flexibility","stability"]},{"id":"OBS_05","category":"갈등","prompt":"{name}은(는) 다투고 난 직후에는 보통 어떤가요?","options":[{"id":"A","text":"바로 끝까지 이야기해서 풀고 싶어하는 것 같다.","score":{"conflictDirect":3,"cooldown":-3}},{"id":"B","text":"잠깐 시간을 두고 다시 이야기하자고 하는 편이다.","score":{"conflictDirect":2,"cooldown":2}},{"id":"C","text":"당장은 말하고 싶어하지 않는 것 같다.","score":{"cooldown":3}},{"id":"D","text":"말수가 줄고 혼자 정리하려는 편이다.","score":{"cooldown":3,"emotionExpression":-2}}],"allowed":["conflictDirect","cooldown","emotionExpression"]},{"id":"OBS_06","category":"갈등","prompt":"{name}은(는) 상대가 힘든 일을 이야기할 때 어떤 반응을 먼저 보이나요?","options":[{"id":"A","text":"충분히 들어주고 공감부터 해주는 편이다.","score":{"empathy":3}},{"id":"B","text":"바로 해결 방법을 같이 찾으려는 편이다.","score":{"solution":3}},{"id":"C","text":"상황부터 정리해서 누구 잘못인지 따지는 편이다.","score":{"solution":2,"accountability":1}},{"id":"D","text":"원하는 게 위로인지 해결인지 먼저 물어보는 편이다.","score":{"empathy":2,"solution":2,"flexibility":2}}],"allowed":["empathy","solution","accountability","flexibility"]},{"id":"OBS_07","category":"신뢰·경계","prompt":"{name}은(는) 자기 잘못을 인정할 때 어떤 모습인가요?","options":[{"id":"A","text":"깔끔하게 바로 사과하는 편이다.","score":{"accountability":3,"repair":2}},{"id":"B","text":"이유를 설명하면서 사과하는 편이다.","score":{"accountability":2,"conflictDirect":1}},{"id":"C","text":"잘못을 잘 인정하지 않으려는 편이다.","score":{"accountability":-2}},{"id":"D","text":"행동으로 바뀐 모습을 보여주려는 편이다.","score":{"repair":3,"accountability":1}}],"allowed":["accountability","repair","conflictDirect"]},{"id":"OBS_08","category":"신뢰·경계","prompt":"{name}은(는) 사생활(휴대폰, 일정 등)에 대해 어떤 태도인가요?","options":[{"id":"A","text":"물어보면 대체로 잘 보여주는 편이다.","score":{"privacy":-2}},{"id":"B","text":"필요한 정도만 공유하고 선을 정하는 편이다.","score":{"privacy":3,"boundary":2}},{"id":"C","text":"물어보면 이유부터 궁금해하는 편이다.","score":{"conflictDirect":1,"boundary":1}},{"id":"D","text":"사생활은 확실히 지키려는 편이다.","score":{"privacy":3,"boundary":3}}],"allowed":["privacy","boundary","conflictDirect"]},{"id":"OBS_09","category":"사랑표현","prompt":"{name}은(는) 자기 감정을 표현하는 방식은 어떤가요?","options":[{"id":"A","text":"좋고 싫은 걸 솔직하게 잘 표현하는 편이다.","score":{"emotionExpression":3}},{"id":"B","text":"필요할 때만 표현하는 편이다.","score":{"emotionExpression":1}},{"id":"C","text":"감정을 잘 드러내지 않는 편이다.","score":{"emotionExpression":-2}},{"id":"D","text":"서운해도 잘 티내지 않고 넘기는 편이다.","score":{"emotionExpression":-3,"cooldown":1}}],"allowed":["emotionExpression","cooldown"]},{"id":"OBS_10","category":"사랑표현","prompt":"{name}은(는) 평소 애정을 표현할 때 가장 가까운 방식은?","options":[{"id":"A","text":"좋아한다는 말을 자주 하는 편이다.","score":{"giveWords":3}},{"id":"B","text":"같이 시간을 보내려고 하는 편이다.","score":{"giveTime":3}},{"id":"C","text":"스킨십으로 애정을 표현하는 편이다.","score":{"giveTouch":3}},{"id":"D","text":"필요한 걸 챙겨주는 식으로 표현하는 편이다.","score":{"giveHelp":3}}],"allowed":["giveWords","giveTime","giveTouch","giveHelp"]},{"id":"OBS_11","category":"미래·위기","prompt":"{name}은(는) 관계의 미래에 대해 어떤 태도인가요?","options":[{"id":"A","text":"미래 계획을 자주 이야기하는 편이다.","score":{"future":3,"stability":1}},{"id":"B","text":"지금 이 순간에 더 집중하는 편이다.","score":{"future":-2}},{"id":"C","text":"안정적인 관계를 중요하게 생각하는 것 같다.","score":{"stability":3}},{"id":"D","text":"새로운 경험이나 변화를 즐기는 편이다.","score":{"stability":-2,"flexibility":2}}],"allowed":["future","stability","flexibility"]},{"id":"OBS_12","category":"연락·거리","prompt":"{name}은(는) 평소 연락 빈도는 어떤 편인가요?","options":[{"id":"A","text":"자주 연락하며 이어져 있고 싶어하는 편이다.","score":{"contact":3,"intimacy":2}},{"id":"B","text":"적당한 정도로 연락하는 편이다.","score":{"contact":1}},{"id":"C","text":"연락이 뜸해도 괜찮아하는 편이다.","score":{"contact":-2,"personalSpace":2}},{"id":"D","text":"정해진 루틴처럼 연락하는 걸 답답해하는 편이다.","score":{"contact":-2,"stability":-1}}],"allowed":["contact","intimacy","personalSpace","stability"]},{"id":"OBS_13","category":"관계운영","prompt":"{name}은(는) 의견이 다를 때 보통 어떻게 하나요?","options":[{"id":"A","text":"중간 지점을 찾아 조율하려는 편이다.","score":{"flexibility":3}},{"id":"B","text":"자기 기준을 잘 지키려는 편이다.","score":{"boundary":2,"flexibility":-1}},{"id":"C","text":"설득하려는 편이다.","score":{"leadership":2,"solution":1}},{"id":"D","text":"큰 문제 아니면 맞춰주는 편이다.","score":{"flexibility":2}}],"allowed":["flexibility","boundary","leadership","solution"]},{"id":"OBS_14","category":"미래·위기","prompt":"{name}은(는) 약속을 어겼을 때 이후 모습은 어떤가요?","options":[{"id":"A","text":"행동으로 신뢰를 다시 쌓으려고 하는 편이다.","score":{"repair":3}},{"id":"B","text":"말로 설명하고 넘어가려는 편이다.","score":{"repair":1,"accountability":1}},{"id":"C","text":"같은 일이 반복되는 편이다.","score":{"repair":-2,"trustOpen":-1}},{"id":"D","text":"스스로도 신경 쓰며 달라지려는 모습을 보인다.","score":{"repair":2,"accountability":2}}],"allowed":["repair","accountability","trustOpen"]}]};</script>
 <script>
 (function(){
   const $=(h)=>{const d=document.createElement('div');d.innerHTML=h;return d.firstElementChild;};
@@ -162,7 +238,9 @@
   const KEY='me_full_v1';
   const Q=DATA.questions, CK=DATA.coreKeys, LK=DATA.loveKeys, CENT=DATA.centroids, META=DATA.meta, BANDS=DATA.bands;
   const CLAB=DATA.coreLabels, LLAB=DATA.loveLabels;
+  const OBSQ=DATA.obsQuestions;
   const qById=Object.fromEntries(Q.map(q=>[q.id,q]));
+  const allById=Object.fromEntries([...Q,...OBSQ].map(q=>[q.id,q]));
 
   // ---- 순서: 카테고리 분산(greedy) ----
   function buildOrder(){
@@ -183,21 +261,27 @@
     for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
     return a.slice(0,n);
   }
-  function fresh(mode){
-    const beta=mode==='beta';
-    return {answers:{},idx:0,order:beta?sampleIds(10):buildOrder(),inter:null,beta};
+  function fresh(mode,opts={}){
+    const beta=mode==='beta', obs=mode==='observed';
+    const order=obs?OBSQ.map(q=>q.id):(beta?sampleIds(10):buildOrder());
+    return {answers:{},idx:0,order,inter:null,beta,flow:opts.flow||'normal',forPerson:opts.forPerson||null,nameToken:opts.nameToken||null,inviteToken:opts.inviteToken||null};
   }
   function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.order)&&s.order.length>0)return s;}catch(e){}return null;}
   function save(s){try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
   let S=load();
   let Page='home'; // 'home' | 'profile' | 'love' | 'friend' | 'career'
 
-  // ---- 계산 ----
-  function ranges(keys){const mn={},mx={};keys.forEach(k=>{mn[k]=0;mx[k]=0;});
-    Q.forEach(q=>{keys.forEach(k=>{const v=q.options.map(o=>+(o.score[k]||0));mn[k]+=Math.min(...v);mx[k]+=Math.max(...v);});});return{mn,mx};}
-  function raw(keys){const r={};keys.forEach(k=>r[k]=0);
-    Object.entries(S.answers).forEach(([qid,a])=>{const q=qById[qid];if(!q)return;const opt=q.options.find(o=>o.id===a.optionId);if(!opt)return;keys.forEach(k=>r[k]+=+(opt.score[k]||0));});return r;}
-  function norm(keys){const rg=ranges(keys),rw=raw(keys),n={};keys.forEach(k=>{const lo=rg.mn[k],hi=rg.mx[k];let v=hi===lo?50:((rw[k]-lo)/(hi-lo))*100;n[k]=Math.max(0,Math.min(100,v));});return n;}
+  // ---- 계산 (범용: 문항 목록 + 답변 맵을 받는 버전) ----
+  function rangesFor(keys,qlist){const mn={},mx={};keys.forEach(k=>{mn[k]=0;mx[k]=0;});
+    qlist.forEach(q=>{keys.forEach(k=>{const v=q.options.map(o=>+(o.score[k]||0));mn[k]+=Math.min(...v);mx[k]+=Math.max(...v);});});return{mn,mx};}
+  function rawFor(keys,answers,qlist){const r={};keys.forEach(k=>r[k]=0);
+    const byId=Object.fromEntries(qlist.map(q=>[q.id,q]));
+    Object.entries(answers).forEach(([qid,a])=>{const q=byId[qid];if(!q)return;const opt=q.options.find(o=>o.id===a.optionId);if(!opt)return;keys.forEach(k=>r[k]+=+(opt.score[k]||0));});return r;}
+  function normFor(keys,answers,qlist){const rg=rangesFor(keys,qlist),rw=rawFor(keys,answers,qlist),n={};keys.forEach(k=>{const lo=rg.mn[k],hi=rg.mx[k];let v=hi===lo?50:((rw[k]-lo)/(hi-lo))*100;n[k]=Math.max(0,Math.min(100,v));});return n;}
+  // ---- 계산 (현재 진행 중인 S 기준 — 기존 코드 호환용 래퍼) ----
+  function ranges(keys){return rangesFor(keys,Q);}
+  function raw(keys){return rawFor(keys,S.answers,Q);}
+  function norm(keys){return normFor(keys,S.answers,Q);}
   function band(v){return v<=20?0:v<=40?1:v<=60?2:v<=80?3:4;}
   function rms(a,b){let s=0;for(let i=0;i<a.length;i++){const d=a[i]-b[i];s+=d*d;}return Math.sqrt(s/a.length);}
   function classify(nc){const uv=CK.map(k=>nc[k]);
@@ -228,19 +312,249 @@
   ];
   function insights(nc){return RULES.filter(r=>r.c.every(([k,d])=>d==='h'?band(nc[k])>=3:band(nc[k])<=1));}
 
+  // ---- 신원(로그인 없는 익명 모델) ----
+  function getOwnerId(){let id=localStorage.getItem('tr_owner_id');if(!id){id=crypto.randomUUID();localStorage.setItem('tr_owner_id',id);}return id;}
+  function getNickname(){return localStorage.getItem('tr_nickname')||'';}
+  function setNickname(n){localStorage.setItem('tr_nickname',n.trim());getOwnerId();}
+  function hasNickname(){return !!getNickname();}
+  const ADMIN_CODE='reportstudio-admin';
+  function isAdmin(){return sessionStorage.getItem('tr_admin')==='1';}
+  function tryAdminLogin(code){const ok=code.trim()===ADMIN_CODE;if(ok)sessionStorage.setItem('tr_admin','1');return ok;}
+
+  // ---- Supabase (psychtest와 같은 프로젝트를 tr_ 접두사로 공유) ----
+  const sb=window.supabase?window.supabase.createClient('https://fbemzeslbvweojmgvohv.supabase.co','sb_publishable_dErg2UZWZQjifyAgO5-ejg_5AH563FV'):null;
+  function genCode(){return crypto.randomUUID().replace(/-/g,'').slice(0,8);}
+
+  async function saveAssessment(answers,{mode='self',personId=null}={}){
+    const id=genCode();
+    if(!sb)return id;
+    const{error}=await sb.from('tr_assessments').insert({id,owner_id:getOwnerId(),person_id:personId,mode,answers});
+    if(error)throw error;
+    return id;
+  }
+  async function loadAssessment(id){
+    if(!sb)return null;
+    const{data,error}=await sb.from('tr_assessments').select('id,answers,mode').eq('id',id).maybeSingle();
+    if(error||!data)return null;
+    return data;
+  }
+
+  // ---- 상품/구매 ----
+  const PRODUCTS={
+    ME_FULL:{sku:'ME_FULL',name:'ME 전체 리포트',desc:'10개 심층 섹션과 18개 수치 전체 공개',list:4900,sale:1900},
+    PERSON_SLOT:{sku:'PERSON_SLOT',name:'사람 추가 (최대 3명)',desc:'썸·연인·전 연인 프로필 등록',list:4900,sale:1900},
+    MATCH_FULL:{sku:'MATCH_FULL',name:'MATCH 전체 리포트',desc:'나에게 맞는 상대 10개 섹션 전체 공개',list:4900,sale:1900},
+    CRUSH:{sku:'CRUSH',name:'CRUSH 비교',desc:'썸 상대들과 각각 어떤 연애가 될지 비교',list:9900,sale:5900},
+    PAIR:{sku:'PAIR',name:'PAIR 궁합 분석',desc:'연인과의 실제 궁합 심층 분석',list:9900,sale:5900},
+  };
+  async function purchase(sku){
+    if(!sb)return;
+    const p=PRODUCTS[sku];
+    const{error}=await sb.from('tr_purchases').insert({owner_id:getOwnerId(),sku,amount:p.sale});
+    if(error)throw error;
+  }
+  async function listEntitlements(){
+    if(!sb)return[];
+    const{data}=await sb.from('tr_purchases').select('sku').eq('owner_id',getOwnerId());
+    return[...new Set((data||[]).map(r=>r.sku))];
+  }
+  async function isUnlocked(sku){return(await listEntitlements()).includes(sku);}
+
+  // ---- 사람(PERSON) ----
+  const MAX_PERSONS=3;
+  async function listPersons(){
+    if(!sb)return[];
+    const{data}=await sb.from('tr_persons').select('id,display_name,relationship_label,response_mode,created_at').eq('owner_id',getOwnerId()).order('created_at');
+    return data||[];
+  }
+  async function createPerson({name,relation,mode}){
+    if(!sb)throw new Error('서버 연결이 설정되지 않았어요.');
+    const existing=await listPersons();
+    if(existing.length>=MAX_PERSONS)throw new Error(`사람은 최대 ${MAX_PERSONS}명까지 추가할 수 있어요.`);
+    const{data:person,error}=await sb.from('tr_persons').insert({owner_id:getOwnerId(),display_name:name.trim(),relationship_label:relation,response_mode:mode}).select().single();
+    if(error)throw error;
+    if(mode!=='direct')return{person,inviteToken:null};
+    const token=crypto.randomUUID().replace(/-/g,'');
+    await sb.from('tr_invites').insert({token,owner_id:getOwnerId(),person_id:person.id});
+    return{person,inviteToken:token};
+  }
+  async function deletePerson(id){if(!sb)return;await sb.from('tr_persons').delete().eq('id',id).eq('owner_id',getOwnerId());}
+  async function resolveInvite(token){
+    if(!sb)return null;
+    const{data}=await sb.from('tr_invites').select('person_id,used_at,tr_persons(display_name)').eq('token',token).maybeSingle();
+    if(!data)return null;
+    return{personId:data.person_id,usedAt:data.used_at,displayName:data.tr_persons?.display_name||''};
+  }
+  async function markInviteUsed(token){if(!sb)return;await sb.from('tr_invites').update({used_at:new Date().toISOString()}).eq('token',token);}
+  async function personAssessment(personId){
+    if(!sb)return null;
+    const{data}=await sb.from('tr_assessments').select('id,answers,mode').eq('person_id',personId).order('created_at',{ascending:false}).limit(1).maybeSingle();
+    return data||null;
+  }
+  function ncFor(assessment){return assessment?normFor(CK,assessment.answers,assessment.mode==='observed'?OBSQ:Q):null;}
+
+  // ---- PAIR/CRUSH 궁합 엔진 (18개 코어수치 기준) ----
+  const PAIR_CATEGORIES=[
+    {category:'연락·거리 궁합',kind:'similarity',dims:['contact','personalSpace','privacy','intimacy']},
+    {category:'신뢰·경계 궁합',kind:'similarity',dims:['trustOpen','boundary']},
+    {category:'갈등 해결 궁합',kind:'similarity',dims:['conflictDirect','cooldown']},
+    {category:'감정 교류 궁합',kind:'similarity',dims:['empathy','emotionExpression','reassurance']},
+    {category:'관계 운영 궁합',kind:'complement',dims:['leadership','flexibility','solution']},
+    {category:'책임·회복 궁합',kind:'similarity',dims:['accountability','repair']},
+    {category:'미래·안정 궁합',kind:'similarity',dims:['stability','future']},
+  ];
+  function catOf(dim){return PAIR_CATEGORIES.find(c=>c.dims.includes(dim))?.category||dim;}
+  function simScore(a,b){return Math.round(100-Math.abs(a-b));}
+  function compScore(gap){if(gap>=20&&gap<=45)return 90;if(gap<20)return Math.round(60-(20-gap)*1.5);return Math.round(Math.max(0,90-(gap-45)*1.2));}
+  const RISK_RULES=[
+    {a:'conflictDirect',b:'cooldown',th:80,label:'추격-회피 충돌',detail:'한 명은 갈등을 그 자리에서 풀고 싶어 하고, 다른 한 명은 혼자 정리할 시간이 필요해요.'},
+    {a:'privacy',b:'reassurance',th:80,label:'확인 욕구 충돌',detail:'한 명은 사생활을 지키고 싶어 하고, 다른 한 명은 자주 확인받고 싶어 해요.'},
+    {a:'leadership',b:'leadership',th:75,label:'주도권 충돌',detail:'둘 다 방향을 직접 정하고 싶어 해서, 결정권을 두고 반복적으로 부딪힐 수 있어요.'},
+  ];
+  function findRisk(a,b){
+    const out=[];
+    for(const r of RISK_RULES){
+      const av=a[r.a],bv=b[r.b],ar=a[r.b],br=b[r.a];
+      const hit=(av!==undefined&&bv!==undefined&&av>=r.th&&bv>=r.th)||(ar!==undefined&&br!==undefined&&ar>=r.th&&br>=r.th);
+      if(hit)out.push({label:r.label,detail:r.detail});
+    }
+    return out;
+  }
+  function computePair(a,b){
+    const rows=[];
+    for(const c of PAIR_CATEGORIES)for(const dim of c.dims){
+      const av=a[dim],bv=b[dim];if(av===undefined||bv===undefined)continue;
+      const score=c.kind==='similarity'?simScore(av,bv):compScore(Math.abs(av-bv));
+      rows.push({dimension:dim,category:c.category,a:av,b:bv,score});
+    }
+    const overallScore=rows.length?Math.round(rows.reduce((s,r)=>s+r.score,0)/rows.length):0;
+    const byCat={};for(const r of rows){(byCat[r.category]=byCat[r.category]||[]).push(r);}
+    const categories=Object.entries(byCat).map(([category,rs])=>({category,score:Math.round(rs.reduce((s,r)=>s+r.score,0)/rs.length)}));
+    return{rows,categories,overallScore,frictions:findRisk(a,b)};
+  }
+  const IMPACT_RULES=[
+    {dim:'leadership',th:65,eff:[{label:'확신 제공',v:18},{label:'개인공간',v:-10}]},
+    {dim:'stability',th:65,eff:[{label:'생활 안정',v:18}]},
+    {dim:'emotionExpression',th:65,eff:[{label:'정서적 안정',v:15}]},
+    {dim:'empathy',th:65,eff:[{label:'정서적 안정',v:13}]},
+    {dim:'solution',th:65,eff:[{label:'문제 해결 속도',v:15}]},
+    {dim:'flexibility',th:65,eff:[{label:'스트레스 완화',v:12}]},
+  ];
+  function impactOf(nc){const out=[];for(const r of IMPACT_RULES){if((nc[r.dim]??0)>=r.th)out.push(...r.eff);}return out;}
+  function computeImpact(a,b){return{aToB:impactOf(a),bToA:impactOf(b)};}
+  const MISREAD_RULES=[
+    {dim:'contact',gap:35,action:'연락을 자주 하는 것',high:'관심의 표현',low:'부담감'},
+    {dim:'boundary',gap:35,action:'선을 긋는 것',high:'자기 존중',low:'거리감'},
+    {dim:'leadership',gap:35,action:'결정을 주도하는 것',high:'든든함',low:'답답함'},
+  ];
+  function findMisreads(a,b,labelA,labelB){
+    const out=[];
+    for(const r of MISREAD_RULES){
+      const av=a[r.dim],bv=b[r.dim];if(av===undefined||bv===undefined)continue;
+      if(Math.abs(av-bv)<r.gap)continue;
+      const[hi,lo]=av>=bv?[labelA,labelB]:[labelB,labelA];
+      out.push({action:r.action,hi,hiText:r.high,lo,loText:r.low});
+    }
+    return out;
+  }
+  function coupleGuide(a,b){
+    const out=[];
+    if((a.conflictDirect??0)>=60&&(b.cooldown??0)>=60)out.push({label:'싸울 때 하지 말아야 할 것',tip:'싸운 직후 바로 답을 요구하지 않기.'});
+    if(Math.abs((a.cooldown??50)-(b.cooldown??50))>=30)out.push({label:'화해할 때 가장 효과적인 방식',tip:'감정이 가라앉을 시간을 준 다음, 짧게라도 먼저 대화를 제안하기.'});
+    if(Math.abs((a.contact??50)-(b.contact??50))>=30)out.push({label:'연락 문제 합의 방법',tip:'바쁠 땐 짧게라도 답장하기로 미리 정해두기.'});
+    if(Math.abs((a.personalSpace??50)-(b.personalSpace??50))>=30)out.push({label:'개인시간 규칙',tip:'혼자만의 시간을 미리 알려주고 존중받기로 정해두기.'});
+    if((a.repair??50)<=40||(b.repair??50)<=40)out.push({label:'신뢰 회복 방식',tip:'같은 문제가 반복되지 않는지 행동으로 확인하는 시간 주기.'});
+    return out.slice(0,3);
+  }
+
+  // ---- MATCH: 나에게 맞는 상대 (ME 데이터만 재사용, 새 질문 없음) ----
+  function pick(rules,nc,fb){for(const r of rules)if(r.m(nc))return r.t;return fb;}
+  const MATCH_SECTIONS=[
+    {title:'나에게 편한 연애 상대',rules:[
+      {m:s=>(s.personalSpace??50)>=65,t:'표현은 충분히 해주되 각자의 생활도 존중해주는 사람과 가장 편안한 관계를 만들 가능성이 높아요.'},
+      {m:s=>(s.intimacy??50)>=65,t:'함께하는 시간과 스킨십을 아끼지 않는, 밀착도가 높은 사람과 편안함을 느낄 가능성이 높아요.'},
+    ],fb:'한쪽으로 치우치기보다, 상황에 따라 거리를 조절해주는 유연한 사람과 편안함을 느낄 가능성이 높아요.'},
+    {title:'나에게 필요한 상대의 연락 스타일',rules:[
+      {m:s=>(s.contact??50)>=65,t:'먼저 연락하고 자주 안부를 묻는 사람일수록 안정감을 줘요.'},
+      {m:s=>(s.contact??50)<=35,t:'연락 빈도보다 필요할 때 확실하게 소통하는 사람이 편해요.'},
+    ],fb:'정해진 루틴보다는 그때그때 자연스럽게 맞춰가는 연락 방식이 잘 맞아요.'},
+    {title:'나에게 필요한 개인공간 수준',rules:[
+      {m:s=>(s.personalSpace??50)>=65,t:'혼자만의 시간을 당연하게 인정해주는 상대가 필요해요.'},
+      {m:s=>(s.personalSpace??50)<=35,t:'따로 있는 시간보다 함께 있는 시간을 더 좋아할 상대와 잘 맞아요.'},
+    ],fb:'개인공간에 유난히 예민하지 않아서, 상대 스타일에 비교적 잘 맞춰갈 수 있어요.'},
+    {title:'나와 잘 맞는 갈등 해결 방식',rules:[
+      {m:s=>(s.conflictDirect??50)>=65,t:'다투더라도 그 자리에서 대화로 풀고 싶어하는 상대와 잘 맞아요.'},
+      {m:s=>(s.cooldown??50)>=65,t:'싸운 직후 바로 대화를 요구하기보다, 혼자 정리할 시간을 주는 상대와 갈등이 덜해요.'},
+    ],fb:'갈등 방식 자체보다, 화해 이후 다시 잘 지내려는 태도를 보이는 상대와 잘 맞아요.'},
+    {title:'나와 잘 맞는 사랑표현 방식',rules:[
+      {m:s=>(s.emotionExpression??50)>=65,t:'감정을 솔직하게 표현해주는 상대일수록 마음이 잘 전달돼요.'},
+    ],fb:'한 가지 방식만 고집하지 않는, 다양한 방식으로 마음을 표현하는 상대와 잘 맞아요.'},
+    {title:'나와 잘 맞는 신뢰 기준',rules:[
+      {m:s=>(s.trustOpen??50)<=35,t:'천천히, 행동으로 신뢰를 보여주는 상대와 더 편하게 마음을 열 수 있어요.'},
+      {m:s=>(s.boundary??50)>=65,t:'정한 선을 존중해주는 상대일수록 신뢰가 쌓여요.'},
+    ],fb:'증명받길 바라기보다, 시간이 쌓이면 자연스럽게 신뢰가 생기는 편이에요.'},
+    {title:'장기연애에서 필요한 상대 특성',rules:[
+      {m:s=>(s.future??50)>=65,t:'장기적인 계획을 함께 그려나가고 싶어하는 상대와 오래갈 가능성이 높아요.'},
+      {m:s=>(s.stability??50)>=65,t:'자극보다 안정을 함께 만들어가는 상대와 장기연애에서 더 편안함을 느껴요.'},
+    ],fb:'완벽함보다, 갈등이 생겨도 관계를 회복하려는 의지가 있는 상대가 장기연애에 중요해요.'},
+    {title:'처음엔 끌리지만 오래 만나면 피곤할 수 있는 유형',rules:[
+      {m:s=>(s.flexibility??50)<=35,t:'분명한 주관에 처음엔 끌릴 수 있지만, 매번 자기 기준만 고집하면 피로해질 수 있어요.'},
+      {m:s=>(s.leadership??50)<=35,t:'강하게 이끌어주는 상대에게 처음엔 끌릴 수 있지만, 결정권이 계속 상대에게만 있으면 답답해질 수 있어요.'},
+    ],fb:'표현이 화려한 상대에게 처음엔 끌릴 수 있지만, 꾸준함이 없으면 신뢰가 오래가지 않을 수 있어요.'},
+    {title:'내가 특히 조심해야 할 관계 패턴',rules:[
+      {m:s=>(s.reassurance??0)>=65&&(s.contact??0)>=65,t:'불안할 때마다 확인을 반복해서 요구하면, 오히려 상대가 지쳐서 멀어지는 패턴을 조심해야 해요.'},
+      {m:s=>(s.cooldown??0)>=70&&(s.emotionExpression??50)<=35,t:'갈등이 불편할 때 말을 줄이고 피해버리면, 작은 문제가 해결되지 않고 계속 쌓이는 패턴을 조심해야 해요.'},
+    ],fb:'특별히 반복되는 위험 패턴은 뚜렷하지 않아요. 지금의 균형 감각을 유지하면 돼요.'},
+  ];
+  function computeMatch(nc){return MATCH_SECTIONS.map(s=>({title:s.title,text:pick(s.rules,nc,s.fb)}));}
+  function matchTopTypes(nc){
+    const uv=CK.map(k=>nc[k]);
+    const rank=Object.entries(CENT).map(([k,c])=>({k,label:c.label,dist:rms(uv,c.vector)})).sort((a,b)=>a.dist-b.dist);
+    return{top3:rank.slice(0,3).map(r=>({...r,sim:Math.round(Math.max(0,100-r.dist))})),worst:rank[rank.length-1]};
+  }
+
+  // ---- ME 전체 리포트: 전체 18수치 + 강점/취약점 ----
+  function allSignature(nc){return CK.map(k=>({label:CLAB[k],value:Math.round(nc[k]),band:band(nc[k]),text:BANDS[k][band(nc[k])]}));}
+
   // ---- 렌더 ----
   function scrollTop(){window.scrollTo(0,0);}
   function goPage(p){Page=p;render();scrollTop();}
   function render(){
     document.querySelectorAll('.tabbar').forEach(e=>e.remove());
+    if(!hasNickname()){renderOnboarding();return;}
     if(Page==='home'){renderHome();return;}
     if(Page==='profile'){renderProfile();return;}
     if(Page==='friend'||Page==='career'){renderComingSoon(Page);return;}
+    if(Page==='people'){renderPeople();return;}
+    if(Page==='match'){renderMatch();return;}
+    if(Page==='crush'){renderCrush();return;}
+    if(Page==='crush-result'){renderCrushResult();return;}
+    if(Page==='pair'){renderPair();return;}
+    if(Page==='admin'){renderAdmin();return;}
+    if(Page==='observedIntro'){renderObservedIntro();return;}
+    if(Page==='inviteIntro'){renderInviteIntro();return;}
+    if(Page==='inviteDone'){renderInviteDone();return;}
     if(!S){renderIntro();return;}
-    const answered=Object.keys(S.answers).length;
     if(S.done){renderResult();return;}
     if(S.inter!=null){renderInter();return;}
     renderQuiz();
+  }
+  function renderOnboarding(){
+    app.innerHTML='';
+    app.append($(`<div class="intro fade" style="justify-content:center">
+      <div class="kick">Report Studio</div>
+      <h1 class="title" style="font-size:30px;margin-top:14px">어떻게<br>불러드릴까요?</h1>
+      <p class="sub">계정을 만들지 않아도 돼요. 닉네임만 정하면 이 브라우저에서 바로 시작할 수 있어요.</p>
+      <input id="nick" placeholder="닉네임" maxlength="20" style="margin-top:22px;width:100%;padding:15px 16px;border:1px solid var(--line);border-radius:14px;font:inherit;font-size:15px;background:var(--surface)">
+      <button class="btn" id="nickGo" style="margin-top:12px" disabled>시작하기</button>
+      <p class="disc">나중에 이메일 로그인으로 바꿔도 지금 만든 리포트는 그대로 이어져요.</p>
+    </div>`));
+    const input=document.getElementById('nick'),go=document.getElementById('nickGo');
+    input.oninput=()=>{go.disabled=!input.value.trim();};
+    input.focus();
+    const submit=()=>{if(!input.value.trim())return;setNickname(input.value);render();scrollTop();};
+    go.onclick=submit;
+    input.onkeydown=(e)=>{if(e.key==='Enter')submit();};
   }
   function renderTabBar(active){
     document.querySelectorAll('.tabbar').forEach(e=>e.remove());
@@ -265,10 +579,28 @@
         <button class="report-card soon" id="rc-friend"><span class="rc-emoji">🤝</span><span class="rc-name">우정 리포트</span><span class="rc-desc">곧 만나요</span></button>
         <button class="report-card soon" id="rc-career"><span class="rc-emoji">🧭</span><span class="rc-name">진로 리포트</span><span class="rc-desc">곧 만나요</span></button>
       </div>
+      <div class="sec-label">더 알아보기</div>
+      <div class="prod-list">
+        <button class="prod-row" id="rc-match"><span class="pr-ic">🧭</span><span class="pr-body"><span class="pr-name">MATCH · 나와 잘 맞는 사람</span><span class="pr-desc">ME 데이터로 바로 확인, 추가 질문 없음</span></span><span class="pr-state">${PRODUCTS.MATCH_FULL.sale.toLocaleString()}원</span></button>
+      </div>
+      <div class="sec-label">누군가 마음에 있다면</div>
+      <div class="prod-list">
+        <button class="prod-row" id="rc-people"><span class="pr-ic">➕</span><span class="pr-body"><span class="pr-name">사람 추가</span><span class="pr-desc">썸 · 연인 · 전 연인 (최대 3명)</span></span><span class="pr-state" id="people-count">···</span></button>
+        <button class="prod-row" id="rc-crush"><span class="pr-ic">🔍</span><span class="pr-body"><span class="pr-name">CRUSH · 누구와 어떤 연애가 될까</span><span class="pr-desc">썸 상대들과 각각 비교</span></span><span class="pr-state">${PRODUCTS.CRUSH.sale.toLocaleString()}원</span></button>
+      </div>
+      <div class="sec-label">연애 중이라면</div>
+      <div class="prod-list">
+        <button class="prod-row" id="rc-pair"><span class="pr-ic">🤝</span><span class="pr-body"><span class="pr-name">PAIR · 우리 둘 궁합</span><span class="pr-desc">연인과의 실제 궁합 분석</span></span><span class="pr-state">${PRODUCTS.PAIR.sale.toLocaleString()}원</span></button>
+      </div>
     </div>`));
     document.getElementById('rc-love').onclick=()=>goPage('love');
     document.getElementById('rc-friend').onclick=()=>goPage('friend');
     document.getElementById('rc-career').onclick=()=>goPage('career');
+    document.getElementById('rc-match').onclick=()=>goPage('match');
+    document.getElementById('rc-people').onclick=()=>goPage('people');
+    document.getElementById('rc-crush').onclick=()=>goPage('crush');
+    document.getElementById('rc-pair').onclick=()=>goPage('pair');
+    listPersons().then(ps=>{const el=document.getElementById('people-count');if(el)el.textContent=`${ps.length}/${MAX_PERSONS}`;});
     renderTabBar('home');
   }
   function renderProfile(){
@@ -276,7 +608,7 @@
     app.append($(`<div class="fade" style="padding-bottom:96px;padding-top:44px">
       <div class="profile-head">
         <div class="profile-avatar">🙂</div>
-        <h2 class="serif" style="font-size:20px;margin:14px 0 4px">임시 프로필</h2>
+        <h2 class="serif" style="font-size:20px;margin:14px 0 4px">${getNickname()||'임시 프로필'}</h2>
         <p class="sub" style="margin:0;max-width:none">아직 준비 중인 화면이에요 — 확인하고 다듬을게요.</p>
       </div>
       <div class="profile-list">
@@ -284,7 +616,9 @@
         <div class="profile-row"><span>가입일</span><span class="pv">-</span></div>
         <div class="profile-row"><span>설정</span><span class="pv">›</span></div>
       </div>
+      <button class="quit-link" id="toAdmin" style="margin:20px auto 0;text-align:center">관리자</button>
     </div>`));
+    document.getElementById('toAdmin').onclick=()=>goPage('admin');
     renderTabBar('profile');
   }
   function renderComingSoon(kind){
@@ -301,6 +635,391 @@
     document.getElementById('back-home').onclick=()=>goPage('home');
     renderTabBar('home');
   }
+
+  // ---- 구매 시트 ----
+  function openSheet(product,onPaid){
+    closeSheet();
+    const ov=$(`<div class="sheet-overlay"></div>`);
+    const sh=$(`<div class="sheet2">
+      <h3>${product.name}</h3>
+      <p class="sub2">${product.desc}</p>
+      <div class="price2"><span class="was">${product.list.toLocaleString()}원</span><span class="now">${product.sale.toLocaleString()}원</span></div>
+      <button class="btn" id="sheetPay">결제하기</button>
+      <button class="quit-link" id="sheetCancel" style="margin:10px auto 0;text-align:center">다음에 할게요</button>
+      <div class="sheet-note">실제 결제(PG) 연동 전 화면이에요. 결제하기를 누르면 구매 완료 처리만 시뮬레이션해요.</div>
+    </div>`);
+    document.body.append(ov,sh);
+    ov.onclick=closeSheet;
+    document.getElementById('sheetCancel').onclick=closeSheet;
+    document.getElementById('sheetPay').onclick=async()=>{
+      const btn=document.getElementById('sheetPay');btn.textContent='처리 중…';btn.disabled=true;
+      try{await purchase(product.sku);closeSheet();onPaid&&onPaid();}
+      catch(e){toast('결제 처리에 실패했어요.');closeSheet();}
+    };
+  }
+  function closeSheet(){document.querySelectorAll('.sheet-overlay,.sheet2').forEach(e=>e.remove());}
+
+  // ---- 사람(PERSON) ----
+  let pendingPerson=null, inviteToken=null, inviteInfo=null, crushSelected=[], crushData=null;
+  function renderPeople(){
+    app.innerHTML='';
+    app.append($(`<div class="fade" style="padding-top:44px;padding-bottom:96px">
+      <button class="back-home" id="bh">← 홈</button>
+      <h2 class="serif" style="font-size:22px;margin:14px 0 4px">사람 관리</h2>
+      <p class="sub" style="margin:0;max-width:none">썸·연인·전 연인을 등록하면 CRUSH·PAIR 분석에 바로 쓸 수 있어요. 최대 ${MAX_PERSONS}명까지 추가할 수 있어요.</p>
+      <div id="ppl-body"><p class="sub" style="margin-top:16px">불러오는 중…</p></div>
+    </div>`));
+    document.getElementById('bh').onclick=()=>goPage('home');
+    renderTabBar('home');
+    loadPeopleBody();
+  }
+  async function loadPeopleBody(showForm){
+    const persons=await listPersons();
+    const body=document.getElementById('ppl-body');if(!body)return;
+    const modeLabel={direct:'본인 직접 응답',observed:'관찰 기반 추정'};
+    body.innerHTML=`
+      <div class="people-list">
+        ${persons.map(p=>`<div class="person-card" data-id="${p.id}">
+          <div class="avatar">${p.display_name[0]}</div>
+          <div class="pc-body"><div class="pc-name">${p.display_name}</div><div class="pc-tag">${p.relationship_label}</div></div>
+          <span class="badge ${p.response_mode}">${modeLabel[p.response_mode]}</span>
+          <button class="pc-remove" data-del="${p.id}">✕</button>
+        </div>`).join('')}
+      </div>
+      ${persons.length<MAX_PERSONS?`<button class="add-person-btn" id="addP">+ 사람 추가하기</button>`:''}
+      <div id="ppl-form"></div>
+      <div class="invite-box" style="margin-top:18px"><p style="margin:0;font-size:12px;color:var(--ink-soft);line-height:1.6">직접 테스트: 상대에게 링크를 보내면 본인이 직접 질문에 답해요 (가장 정확).<br>관찰 기반: 상대가 테스트할 수 없을 때, 내가 본 행동을 바탕으로 추정 프로필을 만들어요.</p></div>
+    `;
+    body.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{await deletePerson(b.dataset.del);loadPeopleBody();});
+    const addBtn=document.getElementById('addP');
+    if(addBtn)addBtn.onclick=()=>showPersonForm();
+    if(showForm)showPersonForm();
+  }
+  function showPersonForm(){
+    const form=document.getElementById('ppl-form');if(!form)return;
+    let relation='썸',mode='direct';
+    form.innerHTML=`
+      <div style="margin-top:14px">
+        <input id="pName" placeholder="이름 (별칭)" maxlength="20" style="width:100%;padding:14px;border:1.5px solid var(--line);border-radius:14px;font:inherit;font-size:14.5px;background:var(--surface)">
+        <div class="chip-row" style="margin-top:10px">
+          <button type="button" class="chip on" data-rel="썸">썸</button>
+          <button type="button" class="chip" data-rel="연인">연인</button>
+          <button type="button" class="chip" data-rel="전 연인">전 연인</button>
+        </div>
+        <div class="mode-choice">
+          <button type="button" class="mode-card on" data-mode="direct"><div class="mt">직접 테스트</div><div class="md">링크를 보내면 상대가 직접 응답 (가장 정확)</div></button>
+          <button type="button" class="mode-card" data-mode="observed"><div class="mt">관찰 기반</div><div class="md">내가 본 행동으로 추정</div></button>
+        </div>
+        <button class="btn" id="pSubmit" style="margin-top:14px">추가하기</button>
+        <p class="disc" id="pErr" style="color:#B5495F"></p>
+      </div>`;
+    form.querySelectorAll('[data-rel]').forEach(b=>b.onclick=()=>{relation=b.dataset.rel;form.querySelectorAll('[data-rel]').forEach(x=>x.classList.toggle('on',x===b));});
+    form.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;form.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('on',x===b));});
+    document.getElementById('pSubmit').onclick=async()=>{
+      const name=document.getElementById('pName').value.trim();
+      const err=document.getElementById('pErr');err.textContent='';
+      if(!name){err.textContent='이름을 입력해주세요.';return;}
+      try{
+        const{person,inviteToken:token}=await createPerson({name,relation,mode});
+        if(token){
+          pendingPerson=person;
+          form.innerHTML=`<div class="invite-box">
+            <p style="margin:0;font-size:13px;color:var(--ink);font-weight:600">직접 테스트 링크가 만들어졌어요. ${person.display_name}님에게 이 링크를 보내주세요.</p>
+            <div class="invite-link-row"><code id="invLink"></code><button class="quit-link" id="invCopy" style="padding:6px 10px;border:1px solid var(--line);border-radius:8px">복사</button></div>
+            <button class="btn" id="invDone">확인</button>
+          </div>`;
+          const link=`${location.origin}${location.pathname}#invite=${token}`;
+          document.getElementById('invLink').textContent=link;
+          document.getElementById('invCopy').onclick=()=>{navigator.clipboard.writeText(link);toast('링크를 복사했어요.');};
+          document.getElementById('invDone').onclick=()=>loadPeopleBody();
+        }else{
+          pendingPerson=person;
+          Page='observedIntro';render();scrollTop();
+        }
+      }catch(e){err.textContent=e.message||'추가에 실패했어요.';}
+    };
+  }
+  function renderObservedIntro(){
+    const p=pendingPerson;
+    app.innerHTML='';
+    app.append($(`<div class="intro fade" style="justify-content:center">
+      <div class="kick">관찰 기반 프로필</div>
+      <h1 class="title" style="font-size:28px;margin-top:12px">${p.display_name}님에 대해<br>답해주세요</h1>
+      <p class="sub">${p.display_name}님이 직접 답한 게 아니라, 내가 관찰한 행동을 바탕으로 추정하는 프로필이에요. 14문항, 2분 정도 걸려요.</p>
+      <button class="btn" id="obsStart" style="margin-top:20px">시작하기</button>
+      <button class="quit-link" id="obsLater" style="margin:12px auto 0;text-align:center">나중에 할게요</button>
+    </div>`));
+    document.getElementById('obsStart').onclick=()=>{S=fresh('observed',{flow:'observed',forPerson:p.id,nameToken:p.display_name});save(S);Page='love';render();scrollTop();};
+    document.getElementById('obsLater').onclick=()=>{Page='people';render();scrollTop();};
+  }
+  function renderInviteIntro(){
+    const info=inviteInfo;
+    if(!info||info.usedAt){
+      app.innerHTML='';
+      app.append($(`<div class="intro fade" style="justify-content:center"><p class="sub">유효하지 않거나 이미 사용된 링크예요.</p></div>`));
+      return;
+    }
+    app.innerHTML='';
+    app.append($(`<div class="intro fade" style="justify-content:center">
+      <div class="kick">Love Personality Report</div>
+      <h1 class="title" style="font-size:28px;margin-top:12px"><b style="color:var(--rose-deep)">${info.displayName}</b>님이<br>요청한 테스트예요</h1>
+      <p class="sub">솔직하게 답해주실수록 더 정확한 결과가 나와요. 5분 정도 걸려요.</p>
+      <button class="btn" id="invStart" style="margin-top:20px">시작하기</button>
+    </div>`));
+    document.getElementById('invStart').onclick=()=>{
+      S=fresh('full',{flow:'invite',forPerson:info.personId,inviteToken:inviteToken});save(S);Page='love';render();scrollTop();
+    };
+  }
+  function renderInviteDone(){
+    app.innerHTML='';
+    app.append($(`<div class="intro fade" style="justify-content:center">
+      <div class="em" style="font-size:56px;text-align:center">🙏</div>
+      <h1 class="title" style="font-size:26px;margin-top:12px;text-align:center">답변 감사해요!</h1>
+      <p class="sub" style="text-align:center">이제 창을 닫으셔도 돼요.</p>
+    </div>`));
+  }
+
+  // ---- MATCH ----
+  function renderMatch(){
+    if(!S||!S.done){
+      app.innerHTML='';
+      app.append($(`<div class="intro fade" style="justify-content:center"><p class="sub">ME 테스트를 먼저 완료해주세요.</p><button class="btn" id="toMe" style="margin-top:16px">ME 테스트 하러 가기</button></div>`));
+      document.getElementById('toMe').onclick=()=>{Page='love';render();scrollTop();};
+      return;
+    }
+    const nc=norm(CK);
+    const sections=computeMatch(nc);
+    const types=matchTopTypes(nc);
+    app.innerHTML='';
+    const el=$(`<div class="fade" style="padding-top:44px;padding-bottom:96px">
+      <button class="back-home" id="bh">← 홈</button>
+      <div class="kick" style="margin-top:14px">MATCH</div>
+      <h2 class="serif" style="font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:24px;margin:8px 0 4px">당신에게 맞는 연애 상대</h2>
+      <p class="sub" style="margin:0;max-width:none">ME에서 계산된 핵심 연애수치로 바로 분석했어요. 추가 질문은 없어요.</p>
+      <div id="matchBody" style="margin-top:20px"></div>
+    </div>`);
+    app.append(el);
+    document.getElementById('bh').onclick=()=>goPage('home');
+    isUnlocked('MATCH_FULL').then(unlocked=>{
+      const body=document.getElementById('matchBody');if(!body)return;
+      const FREE=2;
+      const visible=unlocked?sections:sections.slice(0,FREE);
+      let html=visible.map((s,i)=>`<div class="compare-card"><div class="compare-who">${String(i+1).padStart(2,'0')}. ${s.title}</div><p style="margin:0;font-size:13.5px;color:var(--ink-soft);line-height:1.65">${s.text}</p></div>`).join('');
+      if(unlocked){
+        html+=`<div class="compare-card"><div class="compare-who">잘 맞는 캐릭터 TOP 3</div>${types.top3.map(t=>`<div class="metric-row"><div class="metric-label">${META[t.k].nameKo}</div><div class="metric-bar"><div style="width:${t.sim}%"></div></div><div class="metric-val">${t.sim}</div></div>`).join('')}</div>`;
+      }else{
+        html+=`<div class="compare-card locked-card"><div class="compare-who">${String(FREE+1).padStart(2,'0')}~${sections.length}. 나머지 ${sections.length-FREE}개 섹션 + 캐릭터 TOP3</div><p style="margin:0;font-size:13px;color:var(--muted)">전체 리포트를 열면 모두 공개돼요.</p></div>`;
+        html+=`<div style="margin-top:20px;padding:20px;background:var(--surface);border:1px solid var(--line);border-radius:20px;text-align:center;box-shadow:var(--shadow-sm)">
+          <div class="price2" style="margin-bottom:10px"><span class="was">${PRODUCTS.MATCH_FULL.list.toLocaleString()}원</span><span class="now">${PRODUCTS.MATCH_FULL.sale.toLocaleString()}원</span></div>
+          <button class="btn" id="matchPay">MATCH 전체 리포트 잠금 해제</button>
+        </div>`;
+      }
+      body.innerHTML=html;
+      const payBtn=document.getElementById('matchPay');
+      if(payBtn)payBtn.onclick=()=>openSheet(PRODUCTS.MATCH_FULL,()=>{toast('✓ 잠금 해제됐어요');renderMatch();});
+    });
+  }
+
+  // ---- CRUSH ----
+  function renderCrush(){
+    app.innerHTML='';
+    app.append($(`<div class="fade" style="padding-top:44px;padding-bottom:96px">
+      <button class="back-home" id="bh">← 홈</button>
+      <div class="kick" style="margin-top:14px">CRUSH</div>
+      <h2 class="serif" style="font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:24px;margin:8px 0 16px">비교할 상대를 골라주세요</h2>
+      <div id="crushBody"><p class="sub" style="margin:0">불러오는 중…</p></div>
+    </div>`));
+    document.getElementById('bh').onclick=()=>goPage('home');
+    listPersons().then(all=>{
+      const som=all.filter(p=>p.relationship_label==='썸');
+      const body=document.getElementById('crushBody');if(!body)return;
+      if(som.length===0){
+        body.innerHTML=`<div class="invite-box"><p style="margin:0;font-size:13px">아직 등록된 썸 상대가 없어요.</p></div><button class="btn" id="toPpl" style="margin-top:14px">사람 추가하러 가기</button>`;
+        document.getElementById('toPpl').onclick=()=>goPage('people');
+        return;
+      }
+      body.innerHTML=`<div class="people-list">${som.map(p=>`<div class="person-card" data-pick="${p.id}" style="cursor:pointer;${crushSelected.includes(p.id)?'border-color:var(--rose);background:var(--blush)':''}">
+        <div class="avatar">${p.display_name[0]}</div>
+        <div class="pc-body"><div class="pc-name">${p.display_name}</div><div class="pc-tag">${p.response_mode==='direct'?'본인 직접 응답':'관찰 기반 추정'}</div></div>
+        <span style="font-size:18px">${crushSelected.includes(p.id)?'✓':'○'}</span>
+      </div>`).join('')}</div>
+      <button class="btn" id="crushGo" style="margin-top:16px">선택한 ${crushSelected.length}명과 비교하기</button>`;
+      body.querySelectorAll('[data-pick]').forEach(row=>row.onclick=()=>{
+        const id=row.dataset.pick;
+        crushSelected=crushSelected.includes(id)?crushSelected.filter(x=>x!==id):[...crushSelected,id];
+        renderCrush();
+      });
+      document.getElementById('crushGo').onclick=()=>{if(crushSelected.length===0)return;Page='crush-result';render();scrollTop();};
+    });
+  }
+  function renderCrushResult(){
+    if(!S||!S.done){app.innerHTML='';app.append($(`<div class="intro fade" style="justify-content:center"><p class="sub">ME 테스트를 먼저 완료해주세요.</p></div>`));return;}
+    const myNc=norm(CK);
+    app.innerHTML='';
+    const el=$(`<div class="fade" style="padding-top:44px;padding-bottom:96px">
+      <button class="back-home" id="bh">← CRUSH</button>
+      <div class="kick" style="margin-top:14px">CRUSH 비교 결과</div>
+      <h2 class="serif" style="font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:24px;margin:8px 0 16px">누구와 어떤 연애가 될까</h2>
+      <div id="crBody"><p class="sub" style="margin:0">불러오는 중…</p></div>
+    </div>`);
+    app.append(el);
+    document.getElementById('bh').onclick=()=>{Page='crush';render();scrollTop();};
+    (async()=>{
+      const entries=[];
+      for(const id of crushSelected){
+        const persons=await listPersons();
+        const person=persons.find(p=>p.id===id);
+        const a=await personAssessment(id);
+        entries.push({person,pair:a?computePair(myNc,ncFor(a)):null});
+      }
+      const unlocked=await isUnlocked('CRUSH');
+      const body=document.getElementById('crBody');if(!body)return;
+      const ready=entries.filter(e=>e.pair);
+      const pending=entries.filter(e=>!e.pair);
+      const visible=unlocked?ready:ready.slice(0,1);
+      let html='';
+      if(pending.length)html+=`<p class="sub" style="margin:0 0 14px">${pending.map(e=>e.person.display_name).join(', ')}님은 아직 응답을 기다리고 있어요.</p>`;
+      const noteFor=s=>s>=80?'정말 잘 맞는 조합이에요. 어디서든 자연스럽게 맞춰질 가능성이 높아요.':s>=65?'전반적으로 잘 맞는 편이에요. 몇몇 지점만 맞추면 편안한 관계가 될 수 있어요.':s>=45?'잘 맞는 부분과 부딪힐 부분이 함께 있어요. 서로 다른 점을 알아가는 재미가 있을 수 있어요.':'많은 부분에서 서로 다르게 반응해요. 그만큼 새로운 자극이 될 수도 있어요.';
+      html+=visible.map(e=>`<div class="compare-card"><div class="compare-who">나 × ${e.person.display_name}</div>
+        ${e.pair.categories.slice(0,5).map(c=>`<div class="metric-row"><div class="metric-label">${c.category.replace(' 궁합','')}</div><div class="metric-bar"><div style="width:${c.score}%"></div></div><div class="metric-val">${c.score}</div></div>`).join('')}
+        <p class="compare-note">${noteFor(e.pair.overallScore)}</p>
+      </div>`).join('');
+      if(!unlocked&&ready.length>1){
+        html+=`<div class="compare-card locked-card"><div class="compare-who">나머지 ${ready.length-1}명 비교</div><p style="margin:0;font-size:12.5px;color:var(--muted)">CRUSH를 잠금 해제하면 선택한 모든 상대와의 비교를 볼 수 있어요.</p></div>`;
+      }
+      if(!unlocked){
+        html+=`<div style="margin-top:16px;padding:20px;background:var(--surface);border:1px solid var(--line);border-radius:20px;text-align:center;box-shadow:var(--shadow-sm)">
+          <div class="price2" style="margin-bottom:10px"><span class="was">${PRODUCTS.CRUSH.list.toLocaleString()}원</span><span class="now">${PRODUCTS.CRUSH.sale.toLocaleString()}원</span></div>
+          <button class="btn" id="crushPay">CRUSH 잠금 해제</button>
+        </div>`;
+      }
+      html+=`<p class="disc" style="text-align:left;margin-top:16px">CRUSH는 누구와 사귀어야 할지 대신 결정하지 않아요. 차이를 보여드릴 뿐, 선택은 당신의 몫이에요.</p>`;
+      body.innerHTML=html;
+      const payBtn=document.getElementById('crushPay');
+      if(payBtn)payBtn.onclick=()=>openSheet(PRODUCTS.CRUSH,()=>{toast('✓ 잠금 해제됐어요');renderCrushResult();});
+    })();
+  }
+
+  // ---- PAIR ----
+  function renderPair(){
+    if(!S||!S.done){app.innerHTML='';app.append($(`<div class="intro fade" style="justify-content:center"><p class="sub">ME 테스트를 먼저 완료해주세요.</p></div>`));return;}
+    const myNc=norm(CK);
+    app.innerHTML='';
+    const el=$(`<div class="fade" style="padding-top:44px;padding-bottom:96px">
+      <button class="back-home" id="bh">← 홈</button>
+      <div class="kick" style="margin-top:14px">PAIR</div>
+      <h2 class="serif" style="font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:24px;margin:8px 0 16px">우리 둘 실제 궁합</h2>
+      <div id="pairBody"><p class="sub" style="margin:0">불러오는 중…</p></div>
+    </div>`);
+    app.append(el);
+    document.getElementById('bh').onclick=()=>goPage('home');
+    (async()=>{
+      const persons=await listPersons();
+      const lover=persons.find(p=>p.relationship_label==='연인');
+      const body=document.getElementById('pairBody');if(!body)return;
+      if(!lover){
+        body.innerHTML=`<div class="invite-box"><p style="margin:0;font-size:13px">아직 등록된 연인이 없어요.</p></div><button class="btn" id="toPpl" style="margin-top:14px">사람 추가하러 가기</button>`;
+        document.getElementById('toPpl').onclick=()=>goPage('people');
+        return;
+      }
+      const a=await personAssessment(lover.id);
+      if(!a){
+        body.innerHTML=`<div class="invite-box"><p style="margin:0;font-size:13px">${lover.display_name}님이 아직 응답을 완료하지 않았어요.</p></div>`;
+        return;
+      }
+      const theirNc=ncFor(a);
+      const pair=computePair(myNc,theirNc);
+      const impact=computeImpact(myNc,theirNc);
+      const misreads=findMisreads(myNc,theirNc,'나',lover.display_name);
+      const guide=coupleGuide(myNc,theirNc);
+      const unlocked=await isUnlocked('PAIR');
+      const FREE=2;
+      const cats=unlocked?pair.categories:pair.categories.slice(0,FREE);
+      let html=`<div class="compare-card" style="text-align:center;padding:26px 18px">
+        <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.14em;text-transform:uppercase">전체 궁합</div>
+        <div style="font-family:'Fraunces',serif;font-weight:700;font-size:42px;color:var(--rose-deep);margin:6px 0">${pair.overallScore}</div>
+      </div>
+      <div class="compare-card"><div class="compare-who">카테고리별 궁합</div>${cats.map(c=>`<div class="metric-row"><div class="metric-label">${c.category}</div><div class="metric-bar"><div style="width:${c.score}%"></div></div><div class="metric-val">${c.score}</div></div>`).join('')}</div>`;
+      if(pair.frictions.length){
+        html+=`<div class="compare-card"><div class="compare-who">충돌할 가능성이 있는 부분</div>${pair.frictions.map(f=>`<div class="misread-card"><div class="misread-t">${f.label}</div><p>${f.detail}</p></div>`).join('')}</div>`;
+      }
+      if(!unlocked){
+        html+=`<div style="margin-top:6px;padding:20px;background:var(--surface);border:1px solid var(--line);border-radius:20px;text-align:center;box-shadow:var(--shadow-sm)">
+          <div class="price2" style="margin-bottom:10px"><span class="was">${PRODUCTS.PAIR.list.toLocaleString()}원</span><span class="now">${PRODUCTS.PAIR.sale.toLocaleString()}원</span></div>
+          <button class="btn" id="pairPay">PAIR 전체 리포트 잠금 해제</button>
+          <p class="sheet-note">비대칭 영향, 해석 차이, 커플 사용설명서, 나머지 카테고리는 잠금 해제 후 볼 수 있어요.</p>
+        </div>`;
+      }else{
+        html+=`<div class="compare-card"><div class="compare-who">A가 B에게, B가 A에게 미치는 영향</div>
+          <div class="impact-cols">
+            <div class="impact-col"><h4>내가 ${lover.display_name}에게</h4>${impact.aToB.map(i=>`<div class="impact-item"><span>${i.label}</span><span class="impact-pos">${i.v>0?'+':''}${i.v}</span></div>`).join('')||'<p class="disc" style="margin:0">뚜렷한 영향 신호가 없어요.</p>'}</div>
+            <div class="impact-col"><h4>${lover.display_name}이 나에게</h4>${impact.bToA.map(i=>`<div class="impact-item"><span>${i.label}</span><span class="impact-pos">${i.v>0?'+':''}${i.v}</span></div>`).join('')||'<p class="disc" style="margin:0">뚜렷한 영향 신호가 없어요.</p>'}</div>
+          </div></div>`;
+        if(misreads.length){
+          html+=`<div class="compare-card"><div class="compare-who">같은 행동, 다른 해석</div>${misreads.map(m=>`<div class="misread-card"><div class="misread-t">${m.action}의 의미 차이</div><p>${m.hi}: ${m.action} = ${m.hiText}<br>${m.lo}: ${m.action} = ${m.loText}</p></div>`).join('')}</div>`;
+        }
+        if(guide.length){
+          html+=`<div class="compare-card"><div class="compare-who">우리 커플 사용설명서</div><div class="folded-list">${guide.map(g=>`<div class="folded-item"><div class="folded-n">${g.label}</div><div class="folded-d">${g.tip}</div></div>`).join('')}</div></div>`;
+        }
+      }
+      body.innerHTML=html;
+      const payBtn=document.getElementById('pairPay');
+      if(payBtn)payBtn.onclick=()=>openSheet(PRODUCTS.PAIR,()=>{toast('✓ 잠금 해제됐어요');renderPair();});
+    })();
+  }
+
+  // ---- 관리자 ----
+  function renderAdmin(){
+    if(!isAdmin()){
+      app.innerHTML='';
+      app.append($(`<div class="intro fade" style="justify-content:center">
+        <div class="kick">관리자 코드</div>
+        <h1 class="title" style="font-size:24px;margin-top:12px">관리자 페이지</h1>
+        <p class="sub">코드로만 열려요. 실제 서버 인증이 아니라 화면을 숨겨두는 수준이에요.</p>
+        <input id="admCode" type="password" placeholder="관리자 코드" style="margin-top:18px;width:100%;padding:15px 16px;border:1px solid var(--line);border-radius:14px;font:inherit;font-size:15px;background:var(--surface)">
+        <button class="btn" id="admGo" style="margin-top:12px">입장</button>
+        <p class="disc" id="admErr" style="color:#B5495F"></p>
+      </div>`));
+      document.getElementById('admGo').onclick=()=>{
+        const code=document.getElementById('admCode').value;
+        if(tryAdminLogin(code)){renderAdmin();}else{document.getElementById('admErr').textContent='코드가 맞지 않아요.';}
+      };
+      return;
+    }
+    app.innerHTML='';
+    app.append($(`<div class="fade" style="padding-top:44px;padding-bottom:96px">
+      <button class="back-home" id="bh">← 홈</button>
+      <h2 class="serif" style="font-size:22px;margin:14px 0 4px">관리자</h2>
+      <div id="admBody"><p class="sub" style="margin-top:16px">불러오는 중…</p></div>
+    </div>`));
+    document.getElementById('bh').onclick=()=>goPage('home');
+    (async()=>{
+      if(!sb)return;
+      const[{data:purchases},{data:assessments}]=await Promise.all([
+        sb.from('tr_purchases').select('sku,amount,created_at').order('created_at',{ascending:false}),
+        sb.from('tr_assessments').select('mode'),
+      ]);
+      const body=document.getElementById('admBody');if(!body)return;
+      const revenue=(purchases||[]).reduce((s,p)=>s+p.amount,0);
+      const selfCount=(assessments||[]).filter(a=>a.mode==='self').length;
+      const obsCount=(assessments||[]).filter(a=>a.mode==='observed').length;
+      body.innerHTML=`
+        <div class="admin-stat-grid">
+          <div class="admin-stat"><div class="al">누적 매출</div><div class="av">${revenue.toLocaleString()}원</div></div>
+          <div class="admin-stat"><div class="al">결제 건수</div><div class="av">${(purchases||[]).length}건</div></div>
+        </div>
+        <div class="sec-label">완료한 테스트</div>
+        <div class="folded-list">
+          <div class="folded-item"><div class="folded-n">본인 응답 (ME + 직접 초대)</div><div class="folded-d">${selfCount}건</div></div>
+          <div class="folded-item"><div class="folded-n">관찰 기반 프로필</div><div class="folded-d">${obsCount}건</div></div>
+        </div>
+        <div class="sec-label">최근 구매</div>
+        <div class="folded-list">
+          ${(purchases||[]).slice(0,20).map(p=>`<div class="folded-item"><div class="folded-n">${PRODUCTS[p.sku]?.name||p.sku}</div><div class="folded-d">${p.amount.toLocaleString()}원 · ${new Date(p.created_at).toLocaleDateString('ko-KR')}</div></div>`).join('')||'<p class="sub" style="margin:0">아직 구매 내역이 없어요.</p>'}
+        </div>`;
+    })();
+  }
+
   function renderIntro(){
     app.innerHTML='';
     app.append($(`<div class="intro fade">
@@ -326,7 +1045,8 @@
     document.getElementById('back-home').onclick=()=>goPage('home');
   }
   function renderQuiz(){
-    const qid=S.order[S.idx],q=qById[qid],a=S.answers[qid];
+    const qid=S.order[S.idx],q=allById[qid],a=S.answers[qid];
+    const promptText=S.nameToken?q.prompt.replaceAll('{name}',S.nameToken):q.prompt;
     const total=S.order.length;
     const isLast=S.idx===total-1, answered=!!(a&&a.optionId);
     app.innerHTML='';
@@ -337,7 +1057,7 @@
         <button class="quit-link" id="quit">테스트 포기</button></div>
       <div class="fade">
         <div class="cat">${q.category}</div>
-        <h2 class="q">${q.prompt}</h2>
+        <h2 class="q">${promptText}</h2>
         <div class="opts" id="opts"></div>
         <button class="otherbtn" id="ob">✎ 나는 조금 달라요</button>
         <div id="obox"></div>
@@ -362,11 +1082,23 @@
       const ta=box.querySelector('#ta');
       ta.oninput=()=>{const cur=S.answers[qid]||{};cur.other=ta.value;S.answers[qid]=cur;save(S);};
     };
-    el.querySelector('#quit').onclick=()=>{S=null;localStorage.removeItem(KEY);Page='home';render();scrollTop();};
+    el.querySelector('#quit').onclick=()=>{const back=S.flow==='observed'?'people':'home';S=null;localStorage.removeItem(KEY);Page=back;render();scrollTop();};
     el.querySelector('#prev').onclick=()=>{if(S.idx>0){S.idx--;save(S);renderQuiz();scrollTop();}};
-    el.querySelector('#next').onclick=()=>{
+    el.querySelector('#next').onclick=async()=>{
       if(!(S.answers[qid]&&S.answers[qid].optionId))return;
-      if(isLast){S.done=true;save(S);renderResult();scrollTop();return;}
+      if(isLast){
+        if(S.flow==='observed'){
+          try{await saveAssessment(S.answers,{mode:'observed',personId:S.forPerson});}
+          catch(e){toast('저장에 실패했어요. 다시 시도해주세요.');return;}
+          S=null;localStorage.removeItem(KEY);Page='people';render();scrollTop();return;
+        }
+        if(S.flow==='invite'){
+          try{await saveAssessment(S.answers,{mode:'self',personId:S.forPerson});await markInviteUsed(S.inviteToken);}
+          catch(e){toast('저장에 실패했어요. 다시 시도해주세요.');return;}
+          S=null;localStorage.removeItem(KEY);Page='inviteDone';render();scrollTop();return;
+        }
+        S.done=true;save(S);renderResult();scrollTop();return;
+      }
       S.idx++;save(S);
       if(S.idx%10===0&&S.idx<S.order.length){S.inter=S.idx;save(S);renderInter();scrollTop();}
       else{renderQuiz();scrollTop();}
@@ -377,7 +1109,7 @@
     app.innerHTML='';
     const el=$(`<div class="inter fade"><div class="em">${msg[0]}</div><h3>${msg[1]}</h3><p>${msg[2]}</p><button class="btn" style="max-width:220px" id="cont">계속하기</button><button class="quit-link" id="quit" style="margin-top:16px">테스트 포기</button></div>`);
     app.append(el);el.querySelector('#cont').onclick=()=>{S.inter=null;save(S);renderQuiz();scrollTop();};
-    el.querySelector('#quit').onclick=()=>{S=null;localStorage.removeItem(KEY);Page='home';render();scrollTop();};
+    el.querySelector('#quit').onclick=()=>{const back=S.flow==='observed'?'people':'home';S=null;localStorage.removeItem(KEY);Page=back;render();scrollTop();};
   }
   function renderResult(){
     const nc=norm(CK), nl=norm(LK);
@@ -415,19 +1147,67 @@
         <div class="lg"><h4>받고 싶은 사랑</h4>${recvRows.map((r,i)=>bar(r,i===0&&r.v>0)).join('')}</div>
       </section>
       <section class="rs"><div class="sh"><span class="no">04</span><h3>전체 리포트</h3></div>
-        ${locks.map(t=>`<div class="lock"><span class="ic">${lockIco}</span><span class="lt">${t}</span><span class="lk">${lk}</span></div>`).join('')}
-        <div class="unlock"><div class="ue">Full Report</div><h3>${meta.nameKo}의 연애, 끝까지 읽어보기</h3><p>10개의 심층 섹션과 18개 수치 전체,<br>나와 맞는·부딪히는 아키타입까지.</p><div class="price"><span class="was">9,900원</span><span class="now">4,900</span><span class="cu">원</span></div><button class="ubtn" id="pay">전체 리포트 열기</button><p class="disc" style="color:#B9A0A9;margin-top:12px">1회 결제 · 평생 다시보기</p></div>
+        <div id="fullSection">
+          ${locks.map(t=>`<div class="lock"><span class="ic">${lockIco}</span><span class="lt">${t}</span><span class="lk">${lk}</span></div>`).join('')}
+          <div class="unlock"><div class="ue">Full Report</div><h3>${meta.nameKo}의 연애, 끝까지 읽어보기</h3><p>10개의 심층 섹션과 18개 수치 전체,<br>나와 맞는·부딪히는 아키타입까지.</p><div class="price"><span class="was">${PRODUCTS.ME_FULL.list.toLocaleString()}원</span><span class="now">${PRODUCTS.ME_FULL.sale.toLocaleString()}</span><span class="cu">원</span></div><button class="ubtn" id="pay">전체 리포트 열기</button><p class="disc" style="color:#B9A0A9;margin-top:12px">1회 결제 · 평생 다시보기</p></div>
+        </div>
         <div class="again"><button id="home">처음으로</button><button id="retry">다시 테스트</button></div>
         <p class="disc">이 리포트는 심리 진단이 아닌 자기이해 콘텐츠예요.<br>같은 답변은 항상 같은 결과로 계산됩니다 · ME v1.0</p>
       </section>
     </div>`));
-    document.getElementById('pay').onclick=()=>toast('결제 화면 미리보기예요 🙂 (데모)');
     document.getElementById('home').onclick=()=>{S=null;localStorage.removeItem(KEY);Page='home';render();scrollTop();};
     document.getElementById('retry').onclick=()=>{S=fresh();save(S);render();scrollTop();};
+    isUnlocked('ME_FULL').then(unlocked=>{
+      if(!unlocked){
+        const payBtn=document.getElementById('pay');
+        if(payBtn)payBtn.onclick=()=>openSheet(PRODUCTS.ME_FULL,()=>{toast('✓ 잠금 해제됐어요');renderResult();});
+        return;
+      }
+      const fs=document.getElementById('fullSection');if(!fs)return;
+      fs.innerHTML=renderFullReport(nc,nl,ch,ins,giveRows,recvRows);
+    });
+  }
+  const LOVE_BLURB={giveWords:'말로 마음을 표현할 때 상대가 가장 크게 느껴요.',giveTime:'함께 보내는 시간 자체가 당신의 사랑 표현이에요.',giveTouch:'스킨십으로 애정을 표현하는 게 자연스러워요.',giveGift:'선물과 기념일로 마음을 표현하는 편이에요.',giveHelp:'필요한 걸 직접 해결해주는 걸로 사랑을 표현해요.',receiveWords:'말로 확인받을 때 가장 크게 사랑받는다고 느껴요.',receiveTime:'함께하는 시간을 내줄 때 사랑을 느껴요.',receiveTouch:'스킨십을 받을 때 사랑을 느끼는 편이에요.',receiveGift:'선물을 받을 때 마음이 크게 느껴져요.',receiveHelp:'실질적으로 도와줄 때 사랑받는다고 느껴요.'};
+  function renderFullReport(nc,nl,ch,ins,giveRows,recvRows){
+    const topGive=[...giveRows].sort((a,b)=>b.v-a.v)[0],topRecv=[...recvRows].sort((a,b)=>b.v-a.v)[0];
+    const giveKey=Object.keys(LLAB).find(k=>k.startsWith('give')&&LLAB[k].includes(topGive.l.split('·')[0]))||'giveWords';
+    const recvKey=Object.keys(LLAB).find(k=>k.startsWith('receive')&&LLAB[k].includes(topRecv.l.split('·')[0]))||'receiveWords';
+    const all=allSignature(nc);
+    const lowest=[...all].sort((a,b)=>a.value-b.value).slice(0,2);
+    const types=matchTopTypes(nc);
+    const thirdType=types.top3[2];
+    const worstType=types.worst;
+    const restIns=ins.slice(1);
+    return `
+      <div class="pattern" style="margin-top:0"><div class="pt">당신이 사랑하는 방식</div><p class="px" style="font-size:14.5px">가장 자주 쓰는 표현은 <b>${topGive.l}</b>이에요. ${LOVE_BLURB[giveKey]}</p></div>
+      <div class="pattern"><div class="pt">당신이 사랑받는 방식</div><p class="px" style="font-size:14.5px">가장 크게 느끼는 방식은 <b>${topRecv.l}</b>이에요. ${LOVE_BLURB[recvKey]}</p></div>
+      <div class="pattern"><div class="pt">싸웠을 때의 진짜 모습</div><p class="px" style="font-size:14.5px">${BANDS.conflictDirect[band(nc.conflictDirect)]} ${BANDS.cooldown[band(nc.cooldown)]} ${BANDS.emotionExpression[band(nc.emotionExpression)]}</p></div>
+      <div class="pattern"><div class="pt">신뢰가 깨졌을 때</div><p class="px" style="font-size:14.5px">${BANDS.trustOpen[band(nc.trustOpen)]} ${BANDS.boundary[band(nc.boundary)]} ${BANDS.repair[band(nc.repair)]}</p></div>
+      <div class="pattern"><div class="pt">관계에서 가장 취약한 부분</div><p class="px" style="font-size:14.5px">${lowest.map(d=>`<b>${d.label}</b> — ${d.text}`).join('<br>')}</p></div>
+      <div class="pattern"><div class="pt">관계에서의 강점</div><p class="px" style="font-size:14.5px">${META[ch.primary.k].strengths.map(s=>`· ${s}`).join('<br>')}</p></div>
+      <div class="pattern"><div class="pt">당신과 잘 맞는 캐릭터 — ${META[thirdType.k].nameKo}</div><p class="px" style="font-size:14.5px">“${META[thirdType.k].tagline}” ${META[thirdType.k].essence}</p></div>
+      <div class="pattern"><div class="pt">충돌하기 쉬운 캐릭터 — ${META[worstType.k].nameKo}</div><p class="px" style="font-size:14.5px">“${META[worstType.k].tagline}” 서로 기준이 크게 달라 부딪히는 지점이 많을 수 있어요.</p></div>
+      <div class="sh" style="margin-top:20px"><h3>전체 18개 연애 수치</h3></div>
+      ${all.map(d=>`<div class="sigrow" style="padding:12px 0"><div class="signum" style="font-size:26px">${d.value}<sup>/100</sup></div><div><div class="siglab">${d.label}</div><p class="sigtext">${d.text}</p></div></div>`).join('')}
+      <div class="pattern" style="margin-top:16px"><div class="pt">나를 연애할 때 사용설명서</div><p class="px" style="font-size:14.5px">${[ins[0],...restIns].filter(Boolean).map(r=>`· <b>${r.t}</b> — ${r.x}`).join('<br>')}</p></div>
+    `;
   }
   let tt;function toast(m){clearTimeout(tt);let e=document.querySelector('.toast');if(!e){e=$(`<div class="toast"></div>`);document.body.append(e);}e.textContent=m;tt=setTimeout(()=>e.remove(),2200);}
 
-  render();
+  // ---- 부팅: 초대 링크(#invite=token) / 관리자(#admin) 진입점 처리 ----
+  (async function boot(){
+    const hash=location.hash;
+    if(hash.startsWith('#invite=')){
+      inviteToken=hash.slice('#invite='.length);
+      history.replaceState(null,'',location.pathname);
+      inviteInfo=await resolveInvite(inviteToken).catch(()=>null);
+      Page='inviteIntro';
+    }else if(hash==='#admin'){
+      history.replaceState(null,'',location.pathname);
+      Page='admin';
+    }
+    render();
+  })();
 })();
 </script>
 
