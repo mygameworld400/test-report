@@ -149,6 +149,7 @@
   .back-home{display:inline-flex;align-items:center;gap:6px;color:var(--ink-soft);font-size:13px;background:none;border:none;padding:16px 0 0;cursor:pointer}
   .beta-btn{display:block;width:100%;text-align:center;margin-top:10px;border:1.5px dashed var(--gold);color:var(--amber);font-weight:600;font-size:14px;
     background:transparent;padding:14px;border-radius:999px}
+  .quit-link{display:block;margin:8px 0 0 auto;background:none;border:none;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer;padding:4px}
 </style>
 
 <div class="wrap" id="app"></div>
@@ -332,7 +333,8 @@
     const pct=Math.round((S.idx+1)/total*100);
     const el=$(`<div>
       <div class="pbar"><div class="pmeta"><span class="pcur">${S.idx+1}<small> / ${total}</small></span><span class="ppct">${pct}%</span></div>
-        <div class="track"><div class="fill" style="width:${pct}%"></div></div></div>
+        <div class="track"><div class="fill" style="width:${pct}%"></div></div>
+        <button class="quit-link" id="quit">테스트 포기</button></div>
       <div class="fade">
         <div class="cat">${q.category}</div>
         <h2 class="q">${q.prompt}</h2>
@@ -360,6 +362,7 @@
       const ta=box.querySelector('#ta');
       ta.oninput=()=>{const cur=S.answers[qid]||{};cur.other=ta.value;S.answers[qid]=cur;save(S);};
     };
+    el.querySelector('#quit').onclick=()=>{S=null;localStorage.removeItem(KEY);Page='home';render();scrollTop();};
     el.querySelector('#prev').onclick=()=>{if(S.idx>0){S.idx--;save(S);renderQuiz();scrollTop();}};
     el.querySelector('#next').onclick=()=>{
       if(!(S.answers[qid]&&S.answers[qid].optionId))return;
@@ -372,8 +375,9 @@
   function renderInter(){
     const n=S.inter;const msg={10:['🌱','10개 완료!','편하게 계속 가볼까요?'],20:['🌤️','절반 가까이 왔어요','지금 느낌 그대로면 충분해요.'],30:['🔥','30개 돌파!','조금만 더 하면 결과가 보여요.'],40:['🏁','마지막 스퍼트','5문항만 더!']}[n]||['✨',n+'개 완료!','계속 가볼까요?'];
     app.innerHTML='';
-    const el=$(`<div class="inter fade"><div class="em">${msg[0]}</div><h3>${msg[1]}</h3><p>${msg[2]}</p><button class="btn" style="max-width:220px" id="cont">계속하기</button></div>`);
+    const el=$(`<div class="inter fade"><div class="em">${msg[0]}</div><h3>${msg[1]}</h3><p>${msg[2]}</p><button class="btn" style="max-width:220px" id="cont">계속하기</button><button class="quit-link" id="quit" style="margin-top:16px">테스트 포기</button></div>`);
     app.append(el);el.querySelector('#cont').onclick=()=>{S.inter=null;save(S);renderQuiz();scrollTop();};
+    el.querySelector('#quit').onclick=()=>{S=null;localStorage.removeItem(KEY);Page='home';render();scrollTop();};
   }
   function renderResult(){
     const nc=norm(CK), nl=norm(LK);
