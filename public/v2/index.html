@@ -119,6 +119,34 @@
   .again button{flex:1;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);border-radius:14px;padding:13px;font-weight:500;font-size:13.5px}
   .disc{margin-top:22px;text-align:center;font-size:11px;color:var(--muted);line-height:1.7}
   .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;box-shadow:var(--shadow);z-index:40}
+
+  /* home menu */
+  .home-head{text-align:center;padding:44px 0 8px}
+  .report-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:26px}
+  .report-card{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+    background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:10px 8px;box-shadow:var(--shadow-sm);text-align:center}
+  .report-card .rc-emoji{font-size:24px}
+  .report-card .rc-name{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:13px;color:var(--ink)}
+  .report-card .rc-desc{font-size:10.5px;color:var(--muted);line-height:1.4}
+  .report-card.soon{opacity:.55}
+  .report-card:active{transform:scale(.98)}
+
+  /* profile (placeholder) */
+  .profile-head{text-align:center}
+  .profile-avatar{width:68px;height:68px;margin:0 auto;border-radius:50%;background:var(--blush);display:grid;place-items:center;font-size:30px}
+  .profile-list{margin-top:26px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:2px 16px;box-shadow:var(--shadow-sm)}
+  .profile-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);font-size:14px;color:var(--ink)}
+  .profile-row:last-child{border-bottom:none}
+  .profile-row .pv{color:var(--muted)}
+
+  /* bottom tab bar */
+  .tabbar{position:fixed;left:0;right:0;bottom:0;background:rgba(251,246,241,.95);backdrop-filter:blur(8px);border-top:1px solid var(--line);z-index:30;
+    padding-bottom:env(safe-area-inset-bottom,0px)}
+  .tabbar-inner{max-width:430px;margin:0 auto;display:flex}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;padding:10px 0 8px;color:var(--muted);font-size:11px}
+  .tab .ti{font-size:20px;line-height:1}
+  .tab.on{color:var(--rose-deep)}
+  .back-home{display:inline-flex;align-items:center;gap:6px;color:var(--ink-soft);font-size:13px;background:none;border:none;padding:16px 0 0;cursor:pointer}
 </style>
 
 <div class="wrap" id="app"></div>
@@ -151,6 +179,7 @@
   function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.order&&s.order.length===Q.length)return s;}catch(e){}return null;}
   function save(s){try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
   let S=load();
+  let Page='home'; // 'home' | 'profile' | 'love' | 'friend' | 'career'
 
   // ---- 계산 ----
   function ranges(keys){const mn={},mx={};keys.forEach(k=>{mn[k]=0;mx[k]=0;});
@@ -190,16 +219,81 @@
 
   // ---- 렌더 ----
   function scrollTop(){window.scrollTo(0,0);}
+  function goPage(p){Page=p;render();scrollTop();}
   function render(){
+    document.querySelectorAll('.tabbar').forEach(e=>e.remove());
+    if(Page==='home'){renderHome();return;}
+    if(Page==='profile'){renderProfile();return;}
+    if(Page==='friend'||Page==='career'){renderComingSoon(Page);return;}
     if(!S){renderIntro();return;}
     const answered=Object.keys(S.answers).length;
     if(S.done){renderResult();return;}
     if(S.inter!=null){renderInter();return;}
     renderQuiz();
   }
+  function renderTabBar(active){
+    document.querySelectorAll('.tabbar').forEach(e=>e.remove());
+    const bar=$(`<div class="tabbar"><div class="tabbar-inner">
+      <button class="tab ${active==='home'?'on':''}" id="tab-home"><span class="ti">🏠</span><span>홈</span></button>
+      <button class="tab ${active==='profile'?'on':''}" id="tab-profile"><span class="ti">👤</span><span>내 프로필</span></button>
+    </div></div>`);
+    document.body.append(bar);
+    document.getElementById('tab-home').onclick=()=>goPage('home');
+    document.getElementById('tab-profile').onclick=()=>goPage('profile');
+  }
+  function renderHome(){
+    app.innerHTML='';
+    app.append($(`<div class="fade" style="padding-bottom:96px">
+      <div class="home-head">
+        <div class="kick">Report Studio</div>
+        <h1 class="title" style="font-size:30px;margin-top:12px">나를 알아가는<br>리포트</h1>
+        <p class="sub" style="margin:14px auto 0">궁금한 영역을 골라 나만의 리포트를 받아보세요.</p>
+      </div>
+      <div class="report-grid">
+        <button class="report-card" id="rc-love"><span class="rc-emoji">💗</span><span class="rc-name">연애 리포트</span><span class="rc-desc">지금의 내 연애를<br>한 편의 리포트로</span></button>
+        <button class="report-card soon" id="rc-friend"><span class="rc-emoji">🤝</span><span class="rc-name">우정 리포트</span><span class="rc-desc">곧 만나요</span></button>
+        <button class="report-card soon" id="rc-career"><span class="rc-emoji">🧭</span><span class="rc-name">진로 리포트</span><span class="rc-desc">곧 만나요</span></button>
+      </div>
+    </div>`));
+    document.getElementById('rc-love').onclick=()=>goPage('love');
+    document.getElementById('rc-friend').onclick=()=>goPage('friend');
+    document.getElementById('rc-career').onclick=()=>goPage('career');
+    renderTabBar('home');
+  }
+  function renderProfile(){
+    app.innerHTML='';
+    app.append($(`<div class="fade" style="padding-bottom:96px;padding-top:44px">
+      <div class="profile-head">
+        <div class="profile-avatar">🙂</div>
+        <h2 class="serif" style="font-size:20px;margin:14px 0 4px">임시 프로필</h2>
+        <p class="sub" style="margin:0;max-width:none">아직 준비 중인 화면이에요 — 확인하고 다듬을게요.</p>
+      </div>
+      <div class="profile-list">
+        <div class="profile-row"><span>완료한 리포트</span><span class="pv">0개</span></div>
+        <div class="profile-row"><span>가입일</span><span class="pv">-</span></div>
+        <div class="profile-row"><span>설정</span><span class="pv">›</span></div>
+      </div>
+    </div>`));
+    renderTabBar('profile');
+  }
+  function renderComingSoon(kind){
+    const label=kind==='friend'?'우정 리포트':'진로 리포트';
+    app.innerHTML='';
+    app.append($(`<div class="fade" style="padding-bottom:96px">
+      <div class="inter" style="min-height:64dvh">
+        <div class="em">🛠️</div>
+        <h3>${label}</h3>
+        <p>지금 준비하고 있어요. 완성되면 알려드릴게요.</p>
+        <button class="btn" id="back-home" style="max-width:220px">홈으로</button>
+      </div>
+    </div>`));
+    document.getElementById('back-home').onclick=()=>goPage('home');
+    renderTabBar('home');
+  }
   function renderIntro(){
     app.innerHTML='';
     app.append($(`<div class="intro fade">
+      <button class="back-home" id="back-home">← 홈</button>
       <div class="kick">Love Personality Report</div>
       <div class="hero">
         <div class="serif" style="font-size:13px;color:var(--muted);letter-spacing:.2em">나를 아는 가장 예리한 방법</div>
@@ -216,6 +310,7 @@
       <p class="disc">심리 진단이 아닌 자기이해 콘텐츠예요 · 약 5분</p>
     </div>`));
     document.getElementById('start').onclick=()=>{S=fresh();save(S);render();scrollTop();};
+    document.getElementById('back-home').onclick=()=>goPage('home');
   }
   function renderQuiz(){
     const qid=S.order[S.idx],q=qById[qid],a=S.answers[qid];
@@ -310,7 +405,7 @@
       </section>
     </div>`));
     document.getElementById('pay').onclick=()=>toast('결제 화면 미리보기예요 🙂 (데모)');
-    document.getElementById('home').onclick=()=>{S=null;localStorage.removeItem(KEY);render();scrollTop();};
+    document.getElementById('home').onclick=()=>{S=null;localStorage.removeItem(KEY);Page='home';render();scrollTop();};
     document.getElementById('retry').onclick=()=>{S=fresh();save(S);render();scrollTop();};
   }
   let tt;function toast(m){clearTimeout(tt);let e=document.querySelector('.toast');if(!e){e=$(`<div class="toast"></div>`);document.body.append(e);}e.textContent=m;tt=setTimeout(()=>e.remove(),2200);}
