@@ -223,9 +223,8 @@
 
   /* 잠긴 섹션 미리보기 (블러 페이드) */
   .lock{cursor:pointer}
-  .lock-preview{margin:-2px 0 9px;background:var(--surface);border:1px solid var(--line);border-top:none;border-radius:0 0 14px 14px;padding:14px 16px 54px;position:relative;overflow:hidden;max-height:210px}
-  .lock-preview .px,.lock-preview .sigrow{filter:blur(.2px)}
-  .lock-preview::after{content:'';position:absolute;left:0;right:0;bottom:0;height:110px;background:linear-gradient(to bottom,rgba(255,255,255,0) 0%,var(--surface) 88%)}
+  .lock-preview{margin:-2px 0 9px;background:var(--surface);border:1px solid var(--line);border-top:none;border-radius:0 0 14px 14px;padding:14px 16px 58px;position:relative;overflow:hidden;max-height:340px}
+  .lock-preview::after{content:'';position:absolute;left:0;right:0;bottom:0;height:170px;background:linear-gradient(to bottom,rgba(255,255,255,0) 0%,var(--surface) 82%)}
   .lock-preview-cta{position:absolute;left:16px;right:16px;bottom:14px;z-index:2;border:none;border-radius:999px;padding:12px;font-weight:700;font-size:13px;color:var(--ink);background:linear-gradient(135deg,var(--gold-soft),var(--gold));cursor:pointer}
 
   /* 궁합 보기(코드 입력) 모달 */
@@ -527,7 +526,13 @@
   function matchTopTypes(nc){
     const uv=CK.map(k=>nc[k]);
     const rank=Object.entries(CENT).map(([k,c])=>({k,label:c.label,dist:rms(uv,c.vector)})).sort((a,b)=>a.dist-b.dist);
-    return{top3:rank.slice(0,3).map(r=>({...r,sim:Math.round(Math.max(0,100-r.dist))})),worst:rank[rank.length-1]};
+    return{top3:rank.slice(0,3).map(r=>({...r,sim:Math.round(Math.max(0,100-r.dist))})),worst:rank[rank.length-1],rank};
+  }
+  /** nc와 특정 아키타입 벡터 사이에서 가장 가깝거나(또는 가장 먼) 차원 n개를 뽑는다.
+   * "왜 잘 맞는지/왜 부딪히는지"를 실제 수치 차이로 설명하는 데 쓴다. */
+  function typeDimDiffs(nc,vector,n,order){
+    const diffs=CK.map((k,i)=>({k,label:CLAB[k],mine:Math.round(nc[k]),theirs:vector[i],diff:Math.abs(nc[k]-vector[i])}));
+    return diffs.sort((a,b)=>order==='close'?a.diff-b.diff:b.diff-a.diff).slice(0,n);
   }
 
   // ---- ME 전체 리포트: 전체 18수치 + 강점/취약점 ----
@@ -1283,30 +1288,110 @@
     };
   }
   const LOVE_BLURB={giveWords:'말로 마음을 표현할 때 상대가 가장 크게 느껴요.',giveTime:'함께 보내는 시간 자체가 당신의 사랑 표현이에요.',giveTouch:'스킨십으로 애정을 표현하는 게 자연스러워요.',giveGift:'선물과 기념일로 마음을 표현하는 편이에요.',giveHelp:'필요한 걸 직접 해결해주는 걸로 사랑을 표현해요.',receiveWords:'말로 확인받을 때 가장 크게 사랑받는다고 느껴요.',receiveTime:'함께하는 시간을 내줄 때 사랑을 느껴요.',receiveTouch:'스킨십을 받을 때 사랑을 느끼는 편이에요.',receiveGift:'선물을 받을 때 마음이 크게 느껴져요.',receiveHelp:'실질적으로 도와줄 때 사랑받는다고 느껴요.'};
+  const LOVE_KEY_OF={'말':'Words','시간':'Time','스킨십':'Touch','선물·기념':'Gift','실질적 도움':'Help'};
+  const TIP_RULES=[
+    {dim:'personalSpace',cond:'high',th:65,tip:'혼자만의 시간을 자주 챙겨주세요. 붙어있길 강요하면 오히려 지쳐요.'},
+    {dim:'personalSpace',cond:'low',th:35,tip:'같이 있는 시간 자체를 아까워하지 마세요. 떨어져 있는 시간이 길어지면 서운해해요.'},
+    {dim:'contact',cond:'high',th:65,tip:'연락이 뜸해지면 불안해하니, 짧게라도 자주 답장해주세요.'},
+    {dim:'contact',cond:'low',th:35,tip:'연락 빈도에 크게 얽매이지 않으니, 답장이 늦어도 크게 걱정하지 않아도 돼요.'},
+    {dim:'reassurance',cond:'high',th:65,tip:'마음을 자주 확인시켜주세요. 말로 확실하게 표현해줄수록 안정을 느껴요.'},
+    {dim:'privacy',cond:'high',th:65,tip:'사생활을 캐묻지 마세요. 묻지 않아도 먼저 믿어주는 태도가 중요해요.'},
+    {dim:'trustOpen',cond:'low',th:35,tip:'신뢰는 천천히 쌓여요. 말보다 꾸준한 행동으로 증명해주는 게 효과적이에요.'},
+    {dim:'boundary',cond:'high',th:65,tip:'한번 그은 선은 존중해주세요. 억지로 넘으려 하면 관계가 급격히 식을 수 있어요.'},
+    {dim:'conflictDirect',cond:'high',th:65,tip:'문제가 있으면 피하지 말고 바로 얘기해주세요. 미루면 더 답답해해요.'},
+    {dim:'cooldown',cond:'high',th:65,tip:'다툰 직후엔 바로 답을 요구하지 마세요. 혼자 정리할 시간을 준 다음 다시 얘기하면 훨씬 잘 풀려요.'},
+    {dim:'leadership',cond:'high',th:65,tip:'중요한 결정은 이 사람이 주도하게 맡겨보세요. 방향을 못 잡는 상황을 답답해해요.'},
+    {dim:'leadership',cond:'low',th:35,tip:'결정을 강요하지 마세요. 선택지를 정리해서 제안해주는 쪽을 편해해요.'},
+    {dim:'flexibility',cond:'low',th:35,tip:'계획이 갑자기 바뀌는 걸 힘들어해요. 미리 알려주는 배려가 필요해요.'},
+    {dim:'emotionExpression',cond:'low',th:35,tip:'서운해도 티를 잘 안 내는 편이니, 먼저 마음 상태를 물어봐주는 게 좋아요.'},
+    {dim:'future',cond:'high',th:65,tip:'미래 이야기를 피하지 마세요. 함께 그려보는 것 자체로 안정감을 느껴요.'},
+    {dim:'stability',cond:'high',th:65,tip:'급격한 변화보다 예측 가능한 루틴을 좋아해요.'},
+  ];
   /** locks 배열과 같은 순서로 10개 {title, html} 반환. 미리보기(블러)와 잠금해제 화면이
    * 같은 실제 데이터를 공유한다 — 미리보기용으로 따로 지어낸 문구가 아니다. */
   function fullReportItems(nc,nl,ch,ins,giveRows,recvRows){
-    const topGive=[...giveRows].sort((a,b)=>b.v-a.v)[0],topRecv=[...recvRows].sort((a,b)=>b.v-a.v)[0];
-    const giveKey=Object.keys(LLAB).find(k=>k.startsWith('give')&&LLAB[k].includes(topGive.l.split('·')[0]))||'giveWords';
-    const recvKey=Object.keys(LLAB).find(k=>k.startsWith('receive')&&LLAB[k].includes(topRecv.l.split('·')[0]))||'receiveWords';
+    const giveSorted=[...giveRows].sort((a,b)=>b.v-a.v), recvSorted=[...recvRows].sort((a,b)=>b.v-a.v);
+    const topGive=giveSorted[0],give2=giveSorted[1],giveLow=giveSorted[giveSorted.length-1];
+    const topRecv=recvSorted[0],recv2=recvSorted[1],recvLow=recvSorted[recvSorted.length-1];
+    const giveKey='give'+LOVE_KEY_OF[topGive.l], recvKey='receive'+LOVE_KEY_OF[topRecv.l];
     const all=allSignature(nc);
-    const lowest=[...all].sort((a,b)=>a.value-b.value).slice(0,2);
+    const lowest=[...all].sort((a,b)=>a.value-b.value).slice(0,3);
+    const highest=[...all].sort((a,b)=>b.value-a.value).slice(0,3);
     const types=matchTopTypes(nc);
-    const thirdType=types.top3[2];
+    const goodType=types.rank[2], goodType2=types.rank[3];
     const worstType=types.worst;
+    const closeToGood=typeDimDiffs(nc,CENT[goodType.k].vector,3,'close');
+    const farFromWorst=typeDimDiffs(nc,CENT[worstType.k].vector,3,'far');
     const restIns=ins.slice(1);
     const p=(html)=>`<p class="px" style="font-size:14.5px">${html}</p>`;
+    const bullets=(arr)=>`<p class="px" style="font-size:13.5px;margin-top:8px">${arr.join('<br>')}</p>`;
+    const CLUSTERS=[
+      {label:'친밀감·거리',dims:['intimacy','personalSpace','contact','reassurance']},
+      {label:'신뢰·경계',dims:['trustOpen','boundary','privacy']},
+      {label:'갈등 스타일',dims:['conflictDirect','cooldown','empathy','solution','accountability','emotionExpression']},
+      {label:'관계 운영',dims:['leadership','flexibility','repair','stability','future']},
+    ];
+    const tips=TIP_RULES.filter(r=>r.cond==='high'?(nc[r.dim]??50)>=r.th:(nc[r.dim]??50)<=r.th)
+      .sort((a,b)=>Math.abs((nc[b.dim]??50)-50)-Math.abs((nc[a.dim]??50)-50)).slice(0,5);
     return [
-      {title:'당신이 사랑하는 방식',html:p(`가장 자주 쓰는 표현은 <b>${topGive.l}</b>이에요. ${LOVE_BLURB[giveKey]}`)},
-      {title:'당신이 사랑받는 방식',html:p(`가장 크게 느끼는 방식은 <b>${topRecv.l}</b>이에요. ${LOVE_BLURB[recvKey]}`)},
-      {title:'싸웠을 때의 진짜 모습',html:p(`${BANDS.conflictDirect[band(nc.conflictDirect)]} ${BANDS.cooldown[band(nc.cooldown)]} ${BANDS.emotionExpression[band(nc.emotionExpression)]}`)},
-      {title:'신뢰가 깨졌을 때',html:p(`${BANDS.trustOpen[band(nc.trustOpen)]} ${BANDS.boundary[band(nc.boundary)]} ${BANDS.repair[band(nc.repair)]}`)},
-      {title:'관계에서 가장 취약한 부분',html:p(lowest.map(d=>`<b>${d.label}</b> — ${d.text}`).join('<br>'))},
-      {title:'관계에서의 강점',html:p(META[ch.primary.k].strengths.map(s=>`· ${s}`).join('<br>'))},
-      {title:'당신과 잘 맞는 캐릭터',html:p(`<b>${META[thirdType.k].nameKo}</b> — “${META[thirdType.k].tagline}” ${META[thirdType.k].essence}`)},
-      {title:'충돌하기 쉬운 캐릭터',html:p(`<b>${META[worstType.k].nameKo}</b> — “${META[worstType.k].tagline}” 서로 기준이 크게 달라 부딪히는 지점이 많을 수 있어요.`)},
-      {title:'전체 18개 연애 수치',html:all.map(d=>`<div class="sigrow" style="padding:10px 0"><div class="signum" style="font-size:24px">${d.value}<sup>/100</sup></div><div><div class="siglab">${d.label}</div><p class="sigtext">${d.text}</p></div></div>`).join('')},
-      {title:'나를 연애할 때 사용설명서',html:p([ins[0],...restIns].filter(Boolean).map(r=>`· <b>${r.t}</b> — ${r.x}`).join('<br>'))},
+      {title:'당신이 사랑하는 방식',html:
+        p(`가장 자주 쓰는 표현은 <b>${topGive.l}</b>(${topGive.v}점)이에요. ${LOVE_BLURB[giveKey]}`)+
+        bullets([
+          `· <b>${topGive.l}</b> — ${topGive.v}점. 제일 먼저, 제일 자연스럽게 나오는 표현 방식이에요.`,
+          `· <b>${give2.l}</b> — ${give2.v}점. 두 번째로 자주 쓰는 표현이에요.`,
+          `· <b>${giveLow.l}</b> — ${giveLow.v}점. 상대적으로 잘 안 쓰는 방식이라, 상대가 이걸 기대하면 서로 다르게 느껴질 수 있어요.`,
+        ])},
+      {title:'당신이 사랑받는 방식',html:
+        p(`가장 크게 느끼는 방식은 <b>${topRecv.l}</b>(${topRecv.v}점)이에요. ${LOVE_BLURB[recvKey]}`)+
+        bullets([
+          `· <b>${topRecv.l}</b> — ${topRecv.v}점. 이 방식으로 받을 때 &apos;사랑받는다&apos;는 확신이 가장 커요.`,
+          `· <b>${recv2.l}</b> — ${recv2.v}점. 함께 있으면 만족도가 더 올라가는 조합이에요.`,
+          `· <b>${recvLow.l}</b> — ${recvLow.v}점. 상대가 이 방식으로만 애정을 표현하면 부족하게 느껴질 수 있어요.`,
+        ])},
+      {title:'싸웠을 때의 진짜 모습',html:
+        p(`${BANDS.conflictDirect[band(nc.conflictDirect)]} ${BANDS.cooldown[band(nc.cooldown)]}`)+
+        bullets([
+          `· <b>감정 표현</b> — ${BANDS.emotionExpression[band(nc.emotionExpression)]}`,
+          `· <b>해결책 우선도</b> — ${BANDS.solution[band(nc.solution)]}`,
+          `· <b>공감 우선도</b> — ${BANDS.empathy[band(nc.empathy)]}`,
+        ])+
+        p(band(nc.conflictDirect)>=3&&band(nc.cooldown)>=3
+          ?'다투면 그 자리에서 끝을 보고 싶어하면서도, 정리할 시간도 필요로 하는 편이라 스스로도 마음이 복잡할 수 있어요.'
+          :band(nc.conflictDirect)>=3?'다투면 미루지 않고 그 자리에서 얘기해서 풀고 싶어해요. 상대가 시간을 필요로 하면 답답하게 느껴질 수 있어요.'
+          :band(nc.cooldown)>=3?'다툰 직후엔 바로 얘기하기보다 혼자 정리할 시간이 필요해요. 상대가 계속 대화를 요구하면 오히려 더 멀어질 수 있어요.'
+          :'극단적으로 치우치지 않아서, 상황에 따라 유연하게 갈등에 대응하는 편이에요.')},
+      {title:'신뢰가 깨졌을 때',html:
+        p(`${BANDS.trustOpen[band(nc.trustOpen)]} ${BANDS.boundary[band(nc.boundary)]}`)+
+        bullets([
+          `· <b>관계 회복 의지</b> — ${BANDS.repair[band(nc.repair)]}`,
+          `· <b>책임·사과 중요도</b> — ${BANDS.accountability[band(nc.accountability)]}`,
+        ])+
+        p(band(nc.repair)>=3
+          ?'한번 어긋나도 회복하려는 의지가 강한 편이라, 시간을 두고 행동으로 다시 증명하면 관계가 돌아올 가능성이 높아요.'
+          :band(nc.repair)<=1?'신뢰가 깨지면 회복보다 정리 쪽으로 마음이 기우는 편이에요. 초반에 같은 문제가 반복되지 않게 하는 게 특히 중요해요.'
+          :'회복 가능성은 상황에 따라 갈려요. 무너진 이유가 얼마나 반복됐는지가 관건이에요.')},
+      {title:'관계에서 가장 취약한 부분',html:
+        p(`가장 낮게 나온 세 지표예요. 낮다는 건 나쁘다는 뜻이 아니라, 이 부분에서 상대와 부딪힐 가능성이 상대적으로 높다는 뜻이에요.`)+
+        bullets(lowest.map(d=>`· <b>${d.label}</b> — ${d.value}점. ${d.text}`))+
+        p(`특히 <b>${lowest[0].label}</b>이 낮은 상태에서 스트레스가 겹치면, 평소보다 더 예민하게 반응할 수 있어요.`)},
+      {title:'관계에서의 강점',html:
+        p(`&apos;${META[ch.primary.k].nameKo}&apos; 유형의 핵심 강점이에요.`)+
+        bullets(META[ch.primary.k].strengths.map(s=>`· ${s}`))+
+        p(`특히 <b>${highest[0].label}</b>이 ${highest[0].value}점으로 매우 높게 나와서, 이 강점이 관계에서 실제로 자주 드러날 가능성이 높아요.`)},
+      {title:'당신과 잘 맞는 캐릭터',html:
+        p(`<b>${META[goodType.k].nameKo}</b> — “${META[goodType.k].tagline}”`)+
+        p(META[goodType.k].essence)+
+        bullets(closeToGood.map(d=>`· <b>${d.label}</b> — 나 ${d.mine}점 · 상대 유형 ${Math.round(d.theirs)}점. 거의 같은 지점에 있어요.`))+
+        (goodType2?p(`두 번째로 잘 맞는 유형은 <b>${META[goodType2.k].nameKo}</b>예요. “${META[goodType2.k].tagline}”`):'')},
+      {title:'충돌하기 쉬운 캐릭터',html:
+        p(`<b>${META[worstType.k].nameKo}</b> — “${META[worstType.k].tagline}”. 12개 유형 중 당신과 가장 먼 패턴이에요.`)+
+        bullets(farFromWorst.map(d=>`· <b>${d.label}</b> — 나 ${d.mine}점 · 상대 유형 ${Math.round(d.theirs)}점. 이 차이가 클수록 서로의 기준이 안 맞아요.`))+
+        p(`이 유형과 무조건 안 맞는다는 뜻은 아니지만, 위 지표들에서 반복적으로 부딪힐 가능성이 높아요.`)},
+      {title:'전체 18개 연애 수치',html:CLUSTERS.map(cl=>`<div class="sh" style="margin-top:14px"><h3 style="font-size:15px">${cl.label}</h3></div>${cl.dims.map(k=>`<div class="sigrow" style="padding:8px 0"><div class="signum" style="font-size:22px">${Math.round(nc[k])}<sup>/100</sup></div><div><div class="siglab">${CLAB[k]}</div><p class="sigtext">${BANDS[k][band(nc[k])]}</p></div></div>`).join('')}`).join('')},
+      {title:'나를 연애할 때 사용설명서',html:
+        p('이 수치들을 기준으로, 이 사람과 연애할 때 실질적으로 도움이 되는 태도예요.')+
+        bullets(tips.map(t=>`· ${t.tip}`))+
+        (restIns.length||ins[0]?p(`<b>반복되는 패턴</b><br>`+[ins[0],...restIns].filter(Boolean).map(r=>`· <b>${r.t}</b> — ${r.x}`).join('<br>')):'')},
     ];
   }
   function renderFullReport(nc,nl,ch,ins,giveRows,recvRows){
